@@ -6,14 +6,26 @@ import {
   Workflow, TrendingUp, ExternalLink, Activity, Layout, Globe, UserCheck, Code,
   Binary, Terminal, Layers, Star, ArrowLeft, ChevronLeft, Map, BookOpen, Clock
 } from 'lucide-react';
+
+/**
+ * FIREBASE AUTHENTICATION
+ * Handles user identity verification via Google OAuth.
+ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+/**
+ * CORE MODULES
+ * types.ts: Schema definitions for the entire application.
+ * constants.ts: Assessment questions and weighted profile mapping.
+ * geminiService.ts: Backend integration with the neural processing layer.
+ */
 import { ViewState, AssessmentScores, CareerMatch, SkillEntry, SkillLevel, User, RoadmapStep } from './types';
 import { INTEREST_QUESTIONS, APTITUDE_QUESTIONS, CAREER_PROFILES } from './constants';
 import { getCareerRecommendations, getQuickMarketPulse, searchGlobalMarketData } from './geminiService';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
-// --- Firebase Initialization ---
+// Initialize Firebase with demo configuration
 const firebaseConfig = {
   apiKey: "AIzaSy_demo_key", 
   authDomain: "pathmind-ai.firebaseapp.com",
@@ -26,8 +38,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// --- Components ---
+// --- SHARED UI COMPONENTS ---
 
+/**
+ * BACK BUTTON
+ * Premium navigation element allowing users to backtrack through assessment phases or results.
+ */
 const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <motion.button
     initial={{ opacity: 0, x: -20 }}
@@ -40,10 +56,14 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
     <div className="p-1 bg-white/5 rounded-lg group-hover:bg-cyan-500/20 transition-colors">
       <ChevronLeft className="w-4 h-4" />
     </div>
-    <span className="text-[10px] font-black uppercase tracking-[0.3em] mono">Return // Previous</span>
+    <span className="text-[10px] font-black uppercase tracking-[0.3em] mono">Back</span>
   </motion.button>
 );
 
+/**
+ * NAVIGATION BAR
+ * Persistent header that provides access to core protocols and user settings.
+ */
 const Navbar: React.FC<{ 
   currentView: ViewState; 
   setView: (v: ViewState) => void;
@@ -53,6 +73,7 @@ const Navbar: React.FC<{
 }> = ({ currentView, setView, user, onLogout, isLanding }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Transition navbar background on scroll for better legibility
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
@@ -71,6 +92,7 @@ const Navbar: React.FC<{
           : 'bg-[#020617]/80 backdrop-blur-3xl border-b border-white/5 shadow-2xl'
       }`}
     >
+      {/* Brand Identity */}
       <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setView('landing')}>
         <div className="bg-gradient-to-br from-cyan-500 to-violet-600 p-2.5 rounded-xl group-hover:rotate-12 transition-all shadow-lg shadow-cyan-500/20">
           <Binary className="text-white w-6 h-6" />
@@ -78,12 +100,14 @@ const Navbar: React.FC<{
         <span className="text-2xl font-black tracking-tighter text-white uppercase italic">PathMind<span className="text-cyan-400 not-italic">AI</span></span>
       </div>
       
+      {/* Protocol Selectors */}
       <div className="hidden lg:flex gap-12 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
         <button onClick={() => setView('landing')} className={`hover:text-cyan-400 transition-colors ${currentView === 'landing' ? 'text-cyan-400' : ''}`}>Protocol</button>
         <button onClick={() => setView('assessment')} className={`hover:text-cyan-400 transition-colors ${currentView === 'assessment' ? 'text-cyan-400' : ''}`}>Neural Sync</button>
-        <button onClick={() => setView('trends')} className={`hover:text-cyan-400 transition-colors ${currentView === 'trends' ? 'text-cyan-400' : ''}`}>Grounding</button>
+        <button onClick={() => setView('trends')} className={`hover:text-cyan-400 transition-colors ${currentView === 'trends' ? 'text-cyan-400' : ''}`}>Market Grounding</button>
       </div>
 
+      {/* Auth Interface */}
       <div className="flex items-center gap-6">
         {user ? (
           <div className="flex items-center gap-4 bg-white/5 pl-6 pr-2 py-2 rounded-2xl border border-white/10 backdrop-blur-md">
@@ -91,8 +115,8 @@ const Navbar: React.FC<{
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Operative</p>
               <p className="text-xs font-bold text-white leading-tight">{user.name}</p>
             </div>
-            <button onClick={onLogout} title="Sign Out">
-              <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-xl border-2 border-cyan-500/30 hover:scale-105 transition-transform" />
+            <button onClick={onLogout} title="Terminate Session">
+              <img src={user.photoURL} alt="User Avatar" className="w-10 h-10 rounded-xl border-2 border-cyan-500/30 hover:scale-105 transition-transform" />
             </button>
           </div>
         ) : (
@@ -108,11 +132,18 @@ const Navbar: React.FC<{
   );
 };
 
+// --- CORE VIEW COMPONENTS ---
+
+/**
+ * LANDING PAGE
+ * High-impact hero section and platform architecture overview.
+ */
 const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({ onStart, onExplore }) => {
-  const [marketPulse, setMarketPulse] = useState("Synchronizing talent indices...");
+  const [marketPulse, setMarketPulse] = useState("Synchronizing intelligence...");
   
+  // Fetch real-time market sentiment on mount
   useEffect(() => {
-    getQuickMarketPulse("AI Architecture").then(setMarketPulse);
+    getQuickMarketPulse("Neural Architecture").then(setMarketPulse);
   }, []);
 
   return (
@@ -141,11 +172,11 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
 
           <h1 className="text-7xl md:text-[10rem] font-black text-white mb-10 leading-[0.8] tracking-tighter">
             Architect Your <br />
-            <span className="gradient-text italic">Neural Legacy.</span>
+            <span className="gradient-text italic">Absolute Legacy.</span>
           </h1>
 
           <p className="text-xl md:text-3xl text-slate-400 max-w-4xl mx-auto mb-20 leading-relaxed font-medium">
-            PathMind AI leverages <span className="text-white">Google Gemini 3 Neural Reasoning</span> to map your cognitive DNA to global market demand with pinpoint precision.
+            PathMind utilizes <span className="text-white">Proprietary Neural Reasoning</span> to map your unique talent DNA to global professional demand with absolute precision.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-8 items-center justify-center">
@@ -155,7 +186,7 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
               onClick={onStart} 
               className="bg-gradient-to-r from-cyan-500 to-violet-600 text-white px-20 py-10 rounded-2xl text-xl font-black transition-all flex items-center gap-5 group shadow-3xl shadow-cyan-500/10 uppercase tracking-widest"
             >
-              Initialize Sync
+              Initialize Protocol
               <ArrowRight className="group-hover:translate-x-2 transition-transform w-6 h-6" />
             </motion.button>
             <motion.button 
@@ -165,12 +196,12 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
               className="px-20 py-10 rounded-2xl text-xl font-bold text-white border border-white/10 backdrop-blur-md transition-all flex items-center gap-4 uppercase tracking-widest"
             >
               <Globe className="w-6 h-6 text-cyan-400" />
-              Intelligence Access
+              Intelligence Feed
             </motion.button>
           </div>
         </motion.div>
 
-        {/* DASHBOARD PREVIEW MOCKUP */}
+        {/* INTERFACE MOCKUP */}
         <motion.div 
           initial={{ opacity: 0, y: 100 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -184,14 +215,14 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
                  <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                  <div className="w-3 h-3 rounded-full bg-green-500/50" />
               </div>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mono">PathMind_v4.2.0 // Neural_Dashboard</div>
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mono">PathMind_v4.2.0 // Active_Core</div>
               <div className="w-6 h-6 rounded-lg bg-white/5" />
            </div>
            <div className="grid grid-cols-12 gap-6 p-10 bg-[#020617]/80">
               <div className="col-span-8 space-y-6">
-                 <div className="h-48 bg-white/5 rounded-3xl border border-white/5 p-8 flex flex-col justify-end">
+                 <div className="h-48 bg-white/5 rounded-3xl border border-white/5 p-8 flex flex-col justify-end text-left">
                     <div className="text-4xl font-black text-white mb-2">98.4% Affinity</div>
-                    <div className="text-xs text-cyan-400 font-bold uppercase tracking-widest mono">System Status: Optimal Grounding</div>
+                    <div className="text-xs text-cyan-400 font-bold uppercase tracking-widest mono">System Status: Synchronized</div>
                  </div>
                  <div className="grid grid-cols-2 gap-6">
                     <div className="h-40 bg-white/5 rounded-3xl border border-white/5" />
@@ -208,21 +239,21 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
         </motion.div>
       </section>
 
-      {/* ARCHITECTURE SECTION */}
+      {/* CORE TECHNOLOGY EXPLANATION */}
       <section className="py-60 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
-           <div>
+           <div className="text-left">
               <span className="text-cyan-400 font-black text-[12px] uppercase tracking-[0.5em] mb-8 block mono">HYBRID ARCHITECTURE</span>
-              <h2 className="text-7xl font-black text-white tracking-tighter leading-[0.9] mb-12">How AI Analyzes Your <span className="gradient-text italic">Absolute Potential.</span></h2>
+              <h2 className="text-7xl font-black text-white tracking-tighter leading-[0.9] mb-12">How PathMind Decodes Your <span className="gradient-text italic">Absolute Potential.</span></h2>
               <p className="text-xl text-slate-400 leading-relaxed font-medium mb-16">
-                Most career tools use static quizzes. PathMind AI deploys a three-layer neural synthesis engine.
+                Most platforms use static surveys. Our engine utilizes a three-layer neural synthesis to identify high-fidelity career paths.
               </p>
               
               <div className="space-y-12">
                  {[
-                   { icon: UserCheck, title: 'Psychometric DNA', desc: 'We extract 24 vector points from your cognitive and interest responses.' },
-                   { icon: Workflow, title: 'Gemini Reasoning', desc: 'Google Gemini 3 Pro processes your assets against 4.2M professional roadmaps.' },
-                   { icon: ShieldCheck, title: 'Market Grounding', desc: 'Live Search Grounding validates salary caps and vacancy velocity in real-time.' }
+                   { icon: UserCheck, title: 'Psychometric DNA', desc: 'Analyzing 24 distinct cognitive and personality vectors for total alignment.' },
+                   { icon: Workflow, title: 'Neural Reasoning', desc: 'Our logic engine cross-references your assets with global professional roadmaps.' },
+                   { icon: ShieldCheck, title: 'Live Grounding', desc: 'Real-time validation against current market indices, salary caps, and vacancy trends.' }
                  ].map((item, i) => (
                    <div key={i} className="flex gap-8 group">
                       <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-cyan-500 transition-colors">
@@ -242,72 +273,34 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
               <div className="relative glass-card rounded-[64px] p-2 aspect-square overflow-hidden group">
                  <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=2000" className="w-full h-full object-cover rounded-[60px] opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110" />
                  <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent" />
-                 <div className="absolute bottom-16 left-16 right-16">
+                 <div className="absolute bottom-16 left-16 right-16 text-left">
                     <div className="text-xs font-black text-cyan-400 uppercase tracking-[0.4em] mb-4 mono">Deployment Unit</div>
-                    <div className="text-4xl font-black text-white leading-tight">Neural Sync Interface <br />Active v10.8</div>
+                    <div className="text-4xl font-black text-white leading-tight">Neural Sync Interface <br />v10.8 // Active</div>
                  </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* DASHBOARD GRID */}
-      <section className="py-60 bg-white/[0.01] border-y border-white/5">
-         <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-32">
-               <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-10">Absolute <span className="text-cyan-400 italic">Clarity.</span></h2>
-               <p className="text-2xl text-slate-500 font-medium max-w-3xl mx-auto">Access the dashboard that redefined talent engineering for the next generation of founders and engineers.</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               {[
-                 { title: 'Neural Roadmaps', val: '4-Step Strategic Deployment', icon: Layout },
-                 { title: 'Live Salary Grounding', val: 'Indexed by Region & Seniority', icon: TrendingUp },
-                 { title: 'Skill Asset Inventory', val: 'Proprietary Gap Identification', icon: Layers }
-               ].map((card, i) => (
-                 <div key={i} className="glass-card p-12 rounded-[48px] border border-white/5 hover:border-cyan-500/30 transition-all group">
-                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-cyan-500 transition-all">
-                       <card.icon className="w-8 h-8 text-cyan-400 group-hover:text-white" />
-                    </div>
-                    <h3 className="text-2xl font-black text-white mb-4">{card.title}</h3>
-                    <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest mono">{card.val}</p>
-                 </div>
-               ))}
-            </div>
-         </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="py-60 text-center px-6 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-cyan-500/5 blur-[150px] rounded-full" />
-        <div className="relative z-10">
-          <h2 className="text-8xl font-black text-white tracking-tighter mb-16 leading-[0.85]">Become the <br /><span className="gradient-text italic">Exception.</span></h2>
-          <motion.button 
-            whileHover={{ scale: 1.1 }} 
-            whileTap={{ scale: 0.9 }} 
-            onClick={onStart}
-            className="bg-white text-slate-950 px-24 py-12 rounded-3xl text-2xl font-black hover:bg-cyan-400 hover:text-white transition-all shadow-4xl uppercase tracking-widest"
-          >
-            Deploy Protocol
-          </motion.button>
-          <p className="mt-12 text-[10px] text-slate-600 font-black uppercase tracking-[0.6em] mono">Powered by PathMind Engine & Google Gemini</p>
-        </div>
-      </section>
-
+      {/* FOOTER */}
       <footer className="py-20 text-center border-t border-white/5 opacity-50">
         <div className="flex justify-center items-center gap-4 mb-8">
           <Binary className="text-cyan-500 w-6 h-6" />
           <span className="text-2xl font-black text-white tracking-tighter uppercase italic">PathMind<span className="text-cyan-400 not-italic">AI</span></span>
         </div>
-        <p className="text-slate-700 text-[10px] font-black uppercase tracking-[0.3em] mono mb-4">The Standard in Neural Career Engineering</p>
-        <p className="text-slate-800 text-[8px] font-bold uppercase tracking-[0.2em] mono">© 2025 PathMind Systems Gmbh. No unauthorized access permitted.</p>
+        <p className="text-slate-700 text-[10px] font-black uppercase tracking-[0.3em] mono mb-4">Neural Career Engineering</p>
+        <p className="text-slate-800 text-[8px] font-bold uppercase tracking-[0.2em] mono">© 2025 PathMind Systems. All Systems Operational.</p>
       </footer>
     </div>
   );
 };
 
+/**
+ * GROUNDING VIEW (MARKET TRENDS)
+ * Leverages neural search grounding to find real-time career data.
+ */
 const MarketTrends: React.FC = () => {
-  const [query, setQuery] = useState('Global AI Engineering talent velocity 2025');
+  const [query, setQuery] = useState('Global Tech Sector talent velocity 2025');
   const [data, setData] = useState<{text: string, sources: any[]} | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -322,14 +315,15 @@ const MarketTrends: React.FC = () => {
   useEffect(() => { fetchTrends(query); }, []);
 
   return (
-    <div className="pt-48 pb-32 max-w-7xl mx-auto px-6">
+    <div className="pt-48 pb-32 max-w-7xl mx-auto px-6 text-left">
       <div className="flex flex-col lg:flex-row gap-20 items-start">
         <div className="flex-1 space-y-16">
           <div>
             <span className="text-cyan-400 font-black text-xs uppercase tracking-[0.6em] mb-6 block mono">GROUNDING PROTOCOL ACTIVE</span>
-            <h2 className="text-8xl font-black text-white tracking-tighter leading-tight">Talent <br /><span className="gradient-text italic">Grounding.</span></h2>
+            <h2 className="text-8xl font-black text-white tracking-tighter leading-tight">Market <br /><span className="gradient-text italic">Grounding.</span></h2>
           </div>
 
+          {/* Search Interface */}
           <div className="relative group max-w-2xl">
             <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-[40px] blur opacity-25 group-focus-within:opacity-100 transition duration-1000" />
             <input 
@@ -349,10 +343,10 @@ const MarketTrends: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
              {[
-               { label: 'Grounding Sources', val: 'Global Web', icon: Globe },
-               { label: 'Latency Pulse', val: '142ms', icon: Activity },
-               { label: 'Reasoning Engine', val: 'Gemini 3', icon: Cpu },
-               { label: 'Index Depth', val: 'Full', icon: Binary },
+               { label: 'Intelligence Sources', val: 'Global Index', icon: Globe },
+               { label: 'Analysis Speed', val: '142ms', icon: Activity },
+               { label: 'Logic Kernel', val: 'Proprietary', icon: Cpu },
+               { label: 'Verified Depth', val: 'Full Scale', icon: Binary },
              ].map((m, i) => (
                <div key={i} className="glass-card p-8 rounded-[40px] flex items-center gap-8 border border-white/5">
                  <div className="bg-cyan-500/10 p-5 rounded-2xl"><m.icon className="w-7 h-7 text-cyan-500" /></div>
@@ -365,17 +359,18 @@ const MarketTrends: React.FC = () => {
           </div>
         </div>
 
+        {/* Dynamic Content Panel */}
         <div className="lg:w-[700px] glass-card rounded-[64px] border border-white/10 overflow-hidden min-h-[700px] flex flex-col relative bg-[#020617]/50">
            {loading ? (
              <div className="flex-1 flex flex-col items-center justify-center p-20 text-center">
                <Loader2 className="w-20 h-20 text-cyan-500 animate-spin mb-10" />
-               <p className="text-white font-black text-2xl uppercase tracking-widest mono">Extracting Insights...</p>
+               <p className="text-white font-black text-2xl uppercase tracking-widest mono">Verifying Data...</p>
              </div>
            ) : data ? (
              <div className="p-16 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
                 <div className="flex items-center gap-4 bg-cyan-500/10 text-cyan-400 px-6 py-3 rounded-full w-fit border border-cyan-500/20">
                    <Activity className="w-4 h-4 animate-pulse" />
-                   <span className="text-[10px] font-black uppercase tracking-widest mono">Neural Verification Successful</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest mono">Verification Successful</span>
                 </div>
                 
                 <div className="prose prose-invert prose-2xl max-w-none text-slate-400 leading-relaxed font-medium">
@@ -394,7 +389,7 @@ const MarketTrends: React.FC = () => {
                            rel="noopener noreferrer"
                            className="flex items-center gap-4 bg-white/5 border border-white/5 px-8 py-5 rounded-3xl hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all group"
                          >
-                            <span className="text-sm font-bold text-slate-400 group-hover:text-white truncate max-w-[200px]">{src.web?.title || 'External Index'}</span>
+                            <span className="text-sm font-bold text-slate-400 group-hover:text-white truncate max-w-[200px]">{src.web?.title || 'Index Point'}</span>
                             <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-cyan-400" />
                          </a>
                        ))}
@@ -405,7 +400,7 @@ const MarketTrends: React.FC = () => {
            ) : (
              <div className="flex-1 flex flex-col items-center justify-center p-20 text-center text-slate-700 opacity-30">
                <Binary className="w-32 h-32 mb-10" />
-               <p className="text-2xl font-black uppercase tracking-[0.5em] mono">Awaiting Parameter Input</p>
+               <p className="text-2xl font-black uppercase tracking-[0.5em] mono">Initialize Scan</p>
              </div>
            )}
         </div>
@@ -414,14 +409,19 @@ const MarketTrends: React.FC = () => {
   );
 };
 
+/**
+ * ROADMAP VIEW
+ * Detailed step-by-step career deployment plan generated by the reasoning kernel.
+ */
 const RoadmapView: React.FC<{ match: CareerMatch }> = ({ match }) => (
-  <div className="pt-48 pb-32 max-w-6xl mx-auto px-6">
+  <div className="pt-48 pb-32 max-w-6xl mx-auto px-6 text-left">
     <div className="mb-20">
       <span className="text-cyan-400 font-black text-xs uppercase tracking-[0.6em] mb-6 block mono">STRATEGIC DEPLOYMENT PLAN</span>
       <h2 className="text-7xl font-black text-white tracking-tighter mb-8">{match.career} <br /><span className="gradient-text italic">Roadmap.</span></h2>
       <p className="text-2xl text-slate-400 font-medium max-w-3xl leading-relaxed">{match.description}</p>
     </div>
 
+    {/* Vertical Timeline Roadmap */}
     <div className="relative">
       <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-white/5" />
       <div className="space-y-20">
@@ -454,7 +454,7 @@ const RoadmapView: React.FC<{ match: CareerMatch }> = ({ match }) => (
                 </div>
                 {step.imageUrl && (
                   <div className="lg:w-1/3 aspect-video rounded-3xl overflow-hidden border border-white/10 shrink-0">
-                    <img src={step.imageUrl} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
+                    <img src={step.imageUrl} alt="Contextual Asset" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
                   </div>
                 )}
               </div>
@@ -464,11 +464,12 @@ const RoadmapView: React.FC<{ match: CareerMatch }> = ({ match }) => (
       </div>
     </div>
 
+    {/* Verification Resources */}
     <div className="mt-40 glass-card p-20 rounded-[64px] border border-white/10 text-center">
-       <h3 className="text-4xl font-black text-white mb-10 flex items-center justify-center gap-6"><BookOpen className="text-cyan-400 w-10 h-10" /> Verified Resources</h3>
+       <h3 className="text-4xl font-black text-white mb-10 flex items-center justify-center gap-6"><BookOpen className="text-cyan-400 w-10 h-10" /> Critical Resources</h3>
        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
           {match.resources.map((res, i) => (
-            <a key={i} href={res.url} target="_blank" className="p-10 bg-white/5 rounded-3xl border border-white/5 hover:border-cyan-500/30 transition-all group">
+            <a key={i} href={res.url} target="_blank" rel="noopener noreferrer" className="p-10 bg-white/5 rounded-3xl border border-white/5 hover:border-cyan-500/30 transition-all group">
                <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 mono">{res.type}</div>
                <h4 className="text-xl font-black text-white mb-6 group-hover:text-cyan-400 transition-colors">{res.name}</h4>
                <ExternalLink className="w-5 h-5 text-slate-700" />
@@ -479,6 +480,10 @@ const RoadmapView: React.FC<{ match: CareerMatch }> = ({ match }) => (
   </div>
 );
 
+/**
+ * LOGIN PAGE
+ * Handles secure authentication with a high-stakes terminal aesthetic.
+ */
 const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
 
@@ -494,6 +499,7 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
       };
       onLogin(userObj);
     } catch (error) {
+      // Demo fallback if Firebase is not active
       const dummy: User = { 
         id: 'dev-001', 
         name: 'Lead Architect', 
@@ -516,7 +522,7 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
           <Terminal className="text-white w-16 h-16" />
         </div>
         <h1 className="text-5xl font-black text-white mb-6 tracking-tighter uppercase italic">PathMind<span className="text-cyan-400 not-italic">AI</span></h1>
-        <p className="text-slate-500 mb-16 font-medium text-xl">Identity verification required to initialize <br />Neural Sync Protocols.</p>
+        <p className="text-slate-500 mb-16 font-medium text-xl">Identity verification required for <br />Protocol Access.</p>
         
         <motion.button 
           whileHover={!loading ? { scale: 1.05 } : {}}
@@ -534,18 +540,22 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
             </div>
           ) : (
             <>
-              <img src="https://www.google.com/favicon.ico" className="w-6 h-6 group-hover:scale-110 group-hover:brightness-110 transition-transform" />
-              <span>Access Identity Hub</span>
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-6 h-6 group-hover:scale-110 transition-transform" />
+              <span>Identity Hub Login</span>
             </>
           )}
         </motion.button>
         
-        <p className="mt-12 text-[10px] text-slate-600 font-black uppercase tracking-[0.4em] mono">Secure Encryption: SHA-256 via Firebase</p>
+        <p className="mt-12 text-[10px] text-slate-600 font-black uppercase tracking-[0.4em] mono">Encrypted Session // SHA-256</p>
       </motion.div>
     </div>
   );
 };
 
+/**
+ * ROOT APPLICATION COMPONENT
+ * Manages global application state, routing, and history tracking.
+ */
 export default function App() {
   const [view, setView] = useState<ViewState>('landing');
   const [history, setHistory] = useState<ViewState[]>([]);
@@ -554,11 +564,13 @@ export default function App() {
   const [matchResult, setMatchResult] = useState<CareerMatch | null>(null);
   const [assessmentScores, setAssessmentScores] = useState<AssessmentScores | null>(null);
 
+  // Load session from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem('pathmind_user');
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
+  // View transition with history stack management
   const handleSetView = (next: ViewState) => {
     if (next !== view) {
       setHistory(prev => [...prev, view]);
@@ -567,6 +579,7 @@ export default function App() {
     }
   };
 
+  // Backwards navigation
   const handleGoBack = () => {
     if (history.length > 0) {
       const prev = history[history.length - 1];
@@ -591,10 +604,15 @@ export default function App() {
     handleSetView('landing');
   };
 
+  /**
+   * DATA PROCESSING ENGINE
+   * Coordinates weighted matching and neural synthesis via the Gemini Service.
+   */
   const processResults = async (scores: AssessmentScores) => {
     setLoading(true);
     setAssessmentScores(scores);
     
+    // Core profile weighting logic
     let topCareer = CAREER_PROFILES[0];
     let maxScore = -1;
     CAREER_PROFILES.forEach(profile => {
@@ -606,6 +624,7 @@ export default function App() {
       if (currentScore > maxScore) { maxScore = currentScore; topCareer = profile; }
     });
 
+    // Neural Reasoning Request
     const aiData = await getCareerRecommendations(scores, topCareer.name);
     setMatchResult({
       career: topCareer.name,
@@ -627,13 +646,15 @@ export default function App() {
       <main>
         <AnimatePresence mode="wait">
           {loading ? (
+            /* Analysis Transition State */
             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 bg-[#020617] z-[100] flex flex-col items-center justify-center">
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 blur-[150px] rounded-full animate-pulse" />
                <Loader2 className="w-24 h-24 text-cyan-500 animate-spin mb-10" />
                <h2 className="text-5xl font-black text-white tracking-tighter uppercase italic">Synthesizing DNA...</h2>
-               <p className="text-slate-600 font-bold mt-6 uppercase tracking-[0.6em] mono">Accessing Global Vacancy Feed v9.2</p>
+               <p className="text-slate-600 font-bold mt-6 uppercase tracking-[0.6em] mono">Extracting Insights</p>
             </motion.div>
           ) : (
+            /* App View Router */
             <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
               {view === 'landing' && <LandingPage onStart={() => handleSetView(user ? 'assessment' : 'login')} onExplore={() => handleSetView('trends')} />}
               {view === 'login' && <LoginPage onLogin={handleLogin} />}
@@ -641,7 +662,7 @@ export default function App() {
               {view === 'assessment' && (
                 <div className="pt-48 pb-32 max-w-4xl mx-auto px-6">
                    <div className="glass-card rounded-[64px] p-20 shadow-4xl border border-white/10 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-8 text-[10px] font-black text-slate-700 uppercase tracking-widest mono">Protocol_Sync_Interface</div>
+                      <div className="absolute top-0 right-0 p-8 text-[10px] font-black text-slate-700 uppercase tracking-widest mono">Neural_Sync_Interface</div>
                       <AssessmentPageWrapper onComplete={processResults} />
                    </div>
                 </div>
@@ -662,14 +683,18 @@ export default function App() {
   );
 }
 
+/**
+ * ASSESSMENT COMPONENT
+ * guides the operative through the three-phase data ingestion process.
+ */
 const AssessmentPageWrapper: React.FC<{ onComplete: (s: AssessmentScores) => void }> = ({ onComplete }) => {
   const [step, setStep] = useState(1);
   const [interests, setInterests] = useState<Record<string, number>>({});
   const [aptitude, setAptitude] = useState<Record<string, number>>({});
   const [skills, setSkills] = useState<SkillEntry[]>([
-    { name: 'Python Engineering', level: 'Beginner' },
-    { name: 'Neural Logic', level: 'Beginner' },
-    { name: 'Strategic Analysis', level: 'Beginner' }
+    { name: 'Technical Reasoning', level: 'Beginner' },
+    { name: 'Analytical Logic', level: 'Beginner' },
+    { name: 'Strategic Vision', level: 'Beginner' }
   ]);
 
   const handleNext = () => {
@@ -678,11 +703,13 @@ const AssessmentPageWrapper: React.FC<{ onComplete: (s: AssessmentScores) => voi
   };
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-16 text-left">
+      {/* Progress Indicator */}
       <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
         <motion.div animate={{ width: `${(step/3)*100}%` }} className="h-full bg-gradient-to-r from-cyan-500 to-violet-600 shadow-[0_0_20px_rgba(6,182,212,0.5)]" />
       </div>
       
+      {/* Step 1: Cognitive DNA / Interests */}
       {step === 1 && (
         <div className="space-y-12">
            <div>
@@ -712,6 +739,7 @@ const AssessmentPageWrapper: React.FC<{ onComplete: (s: AssessmentScores) => voi
         </div>
       )}
       
+      {/* Step 2: Neural Verification / Aptitude */}
       {step === 2 && (
         <div className="space-y-12">
           <div>
@@ -741,6 +769,7 @@ const AssessmentPageWrapper: React.FC<{ onComplete: (s: AssessmentScores) => voi
         </div>
       )}
       
+      {/* Step 3: Asset Inventory / Skills */}
       {step === 3 && (
         <div className="space-y-12">
            <div>
@@ -772,26 +801,31 @@ const AssessmentPageWrapper: React.FC<{ onComplete: (s: AssessmentScores) => voi
         </div>
       )}
       
+      {/* Navigation Actions */}
       <div className="pt-16 flex gap-6">
         {step > 1 && (
-          <button onClick={() => setStep(step - 1)} className="flex-1 bg-white/5 py-8 rounded-3xl font-black text-slate-500 hover:bg-white/10 transition-all uppercase tracking-widest text-xs mono">Recall Protocol</button>
+          <button onClick={() => setStep(step - 1)} className="flex-1 bg-white/5 py-8 rounded-3xl font-black text-slate-500 hover:bg-white/10 transition-all uppercase tracking-widest text-xs mono">Previous Phase</button>
         )}
         <button onClick={handleNext} className="flex-[2] bg-gradient-to-r from-cyan-500 to-violet-600 py-8 rounded-3xl font-black text-white hover:scale-[1.02] active:scale-95 shadow-4xl transition-all uppercase tracking-widest text-xs mono">
-          {step === 3 ? "Finalize Sync" : "Deploy Phase"}
+          {step === 3 ? "Finalize Protocol" : "Next Phase"}
         </button>
       </div>
     </div>
   );
 };
 
+/**
+ * RESULTS DASHBOARD
+ * Visualizing the Operative's affinity map and strategic compatibility.
+ */
 const ResultsDashboard: React.FC<{ match: CareerMatch, scores: AssessmentScores, setView: (v: ViewState) => void }> = ({ match, scores, setView }) => {
   const radarData = Object.entries(scores.interests).map(([subject, A]) => ({ subject, A }));
   return (
-    <div className="space-y-24">
+    <div className="space-y-24 text-left">
       <div className="flex flex-col lg:flex-row justify-between items-end gap-16">
         <div className="max-w-4xl">
-          <span className="text-cyan-400 font-black text-xs uppercase tracking-[0.6em] mb-6 block mono">NEURAL SYNTHESIS COMPLETE // V4.2</span>
-          <h1 className="text-8xl font-black text-white leading-[0.85] tracking-tighter mb-12">Match Detected: <br /><span className="gradient-text italic">{match.career}</span></h1>
+          <span className="text-cyan-400 font-black text-xs uppercase tracking-[0.6em] mb-6 block mono">SYNTHESIS COMPLETE // V4.2</span>
+          <h1 className="text-8xl font-black text-white leading-[0.85] tracking-tighter mb-12">Detected Match: <br /><span className="gradient-text italic">{match.career}</span></h1>
           <p className="text-2xl text-slate-400 leading-relaxed font-medium mb-12">{match.description}</p>
           <div className="flex gap-6">
             <button onClick={() => setView('roadmap')} className="bg-gradient-to-r from-cyan-500 to-violet-600 text-white px-16 py-8 rounded-3xl font-black hover:scale-105 transition-all shadow-4xl flex items-center gap-5 uppercase tracking-widest text-xs mono">
@@ -802,6 +836,8 @@ const ResultsDashboard: React.FC<{ match: CareerMatch, scores: AssessmentScores,
             </button>
           </div>
         </div>
+        
+        {/* BIG AFFINITY SCORE */}
         <div className="glass-card p-16 rounded-[64px] text-center border-2 border-cyan-500/40 min-w-[350px] relative overflow-hidden group">
            <div className="absolute inset-0 bg-cyan-500/5 blur-[50px] animate-pulse" />
            <div className="text-[12rem] font-black text-white mb-2 leading-none tracking-tighter relative z-10">{match.score}<span className="text-cyan-500 text-6xl">%</span></div>
@@ -809,6 +845,7 @@ const ResultsDashboard: React.FC<{ match: CareerMatch, scores: AssessmentScores,
         </div>
       </div>
       
+      {/* ANALYTICS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="glass-card p-20 rounded-[64px] border border-white/10">
           <div className="flex justify-between items-center mb-16">
