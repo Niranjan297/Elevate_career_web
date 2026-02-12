@@ -1,5 +1,8 @@
 {
-  "name": "Career Compass",
-  "description": "An intelligent career guidance platform that analyzes student interests, aptitude, and skills to provide personalized career roadmaps and insights using AI.",
-  "requestFramePermissions": []
+  "name": "Career Compass Intelligence",
+  "description": "An elite talent intelligence platform mapping psychometric data to global career roadmaps using neural analysis.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
 }

@@ -2,31 +2,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AssessmentScores, CareerMatch } from "./types";
 
-// Always initialize GoogleGenAI inside the function to ensure the latest API key is used
-// and follow the strict initialization pattern.
-
 export async function generateCareerImage(prompt: string): Promise<string | null> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [{ text: `A professional, futuristic, clean digital art concept showing: ${prompt}. Cinematic lighting, minimalist corporate aesthetic.` }],
       },
-      config: {
-        imageConfig: {
-          aspectRatio: "16:9"
-        }
-      }
+      config: { imageConfig: { aspectRatio: "16:9" } }
     });
 
-    // Iterate through all parts to find the image part as per guidelines
     const candidate = response.candidates?.[0];
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
-        if (part.inlineData) {
-          return `data:image/png;base64,${part.inlineData.data}`;
-        }
+        if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
       }
     }
     return null;
@@ -36,9 +26,21 @@ export async function generateCareerImage(prompt: string): Promise<string | null
   }
 }
 
+export async function getQuickMarketPulse(sector: string): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-flash-lite-latest',
+      contents: `Provide a 1-sentence ultra-fast market sentiment analysis for the ${sector} industry. Focus on growth potential.`,
+    });
+    return response.text || "Market stable with upward trajectory.";
+  } catch (error) {
+    return "Intelligence stream active.";
+  }
+}
+
 export async function getCareerRecommendations(scores: AssessmentScores, topCareer: string): Promise<Partial<CareerMatch>> {
-  // Ensure we use gemini-3-pro-preview for complex reasoning tasks
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
     A student has completed a career assessment. 
     Interests: ${JSON.stringify(scores.interests)}
@@ -47,7 +49,6 @@ export async function getCareerRecommendations(scores: AssessmentScores, topCare
     Primary Suggested Career: ${topCareer}
 
     Provide professional career advice, strengths, gaps, and a detailed 4-step roadmap.
-    Ensure each roadmap step has a 'phase' (e.g., 'Phase 1: Foundation'), a 'title', a 'description', and 'skills'.
   `;
 
   try {
@@ -55,6 +56,7 @@ export async function getCareerRecommendations(scores: AssessmentScores, topCare
       model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
+        thinkingConfig: { thinkingBudget: 32768 },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -93,9 +95,7 @@ export async function getCareerRecommendations(scores: AssessmentScores, topCare
       }
     });
 
-    // Use .text property as per guidelines
-    const jsonStr = response.text?.trim();
-    return jsonStr ? JSON.parse(jsonStr) : {};
+    return JSON.parse(response.text || "{}");
   } catch (error) {
     console.error("Gemini API Error:", error);
     return {
@@ -104,4 +104,17 @@ export async function getCareerRecommendations(scores: AssessmentScores, topCare
       gaps: ["Technical Deep-dive"]
     };
   }
+}
+
+export async function searchGlobalMarketData(query: string): Promise<{text: string, sources: any[]}> {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: query,
+    config: { tools: [{ googleSearch: {} }] },
+  });
+  return {
+    text: response.text || "",
+    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+  };
 }
