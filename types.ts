@@ -64,3 +64,7 @@ export interface Resource {
 }
 
 export type ViewState = 'landing' | 'login' | 'assessment' | 'results' | 'roadmap' | 'trends';
+export interface CareerProfile {
+  name: string;
+  weights: Partial<Record<Category, number>>;
+}
