@@ -56,7 +56,6 @@ export async function getCareerRecommendations(scores: AssessmentScores, topCare
       model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
-        thinkingConfig: { thinkingBudget: 32768 },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,

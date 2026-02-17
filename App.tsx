@@ -11,8 +11,8 @@ import {
  * FIREBASE AUTHENTICATION
  * Handles user identity verification via Google OAuth.
  */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
 /**
  * CORE MODULES
@@ -271,7 +271,7 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
            <div className="relative">
               <div className="absolute -inset-10 bg-cyan-500/10 blur-[100px] rounded-full" />
               <div className="relative glass-card rounded-[64px] p-2 aspect-square overflow-hidden group">
-                 <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=2000" className="w-full h-full object-cover rounded-[60px] opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110" />
+                 <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=2000" alt="Data center servers with blue lights" className="w-full h-full object-cover rounded-[60px] opacity-40 grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110" />
                  <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent" />
                  <div className="absolute bottom-16 left-16 right-16 text-left">
                     <div className="text-xs font-black text-cyan-400 uppercase tracking-[0.4em] mb-4 mono">Deployment Unit</div>
@@ -328,12 +328,15 @@ const MarketTrends: React.FC = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-[40px] blur opacity-25 group-focus-within:opacity-100 transition duration-1000" />
             <input 
               type="text" 
+              aria-label="Market search"
+              placeholder="Search market trends (press Enter)"
               value={query} 
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchTrends(query)}
               className="w-full bg-[#020617] border border-white/10 p-10 rounded-[40px] text-white focus:outline-none focus:border-cyan-500 transition-all font-medium placeholder:text-slate-700 text-xl relative z-10"
             />
             <button 
+              aria-label="Search"
               onClick={() => fetchTrends(query)}
               className="absolute right-8 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-violet-600 p-6 rounded-3xl text-white hover:scale-105 transition-all z-10"
             >

@@ -151,8 +151,6 @@ const getCareerRecommendations = async (scores: AssessmentScores, topCareer: str
       model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
-        // Set maximum thinking budget for Pro model to ensure high-fidelity reasoning
-        thinkingConfig: { thinkingBudget: 32768 },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -514,8 +512,18 @@ const Trends = () => {
         <h2 className="text-8xl font-black text-white tracking-tighter">Live <br /><span className="gradient-text italic">Grounding.</span></h2>
         <p className="text-xl text-slate-500 font-medium">Verify market dynamics across global professional indices in real-time.</p>
         <div className="relative max-w-xl">
-          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && fetchTrends()} className="w-full bg-white/5 border border-white/10 p-8 rounded-3xl text-white outline-none focus:border-cyan-500 font-bold text-xl placeholder:text-slate-700" />
-          <button onClick={fetchTrends} className="absolute right-6 top-1/2 -translate-y-1/2 bg-cyan-500 p-4 rounded-xl text-white hover:bg-cyan-400 transition-all shadow-lg"><Search /></button>
+          <input
+            type="text"
+            aria-label="Market search"
+            placeholder="Search market trends (press Enter)"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchTrends()}
+            className="w-full bg-white/5 border border-white/10 p-8 rounded-3xl text-white outline-none focus:border-cyan-500 font-bold text-xl placeholder:text-slate-700"
+          />
+          <button aria-label="Search" onClick={fetchTrends} className="absolute right-6 top-1/2 -translate-y-1/2 bg-cyan-500 p-4 rounded-xl text-white hover:bg-cyan-400 transition-all shadow-lg">
+            <Search />
+          </button>
         </div>
       </div>
       <div className="lg:w-[700px] glass-card rounded-[64px] border border-white/10 min-h-[600px] p-16 relative overflow-hidden">
