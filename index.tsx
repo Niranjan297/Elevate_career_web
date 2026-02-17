@@ -13,9 +13,8 @@ import {
  * Handles identity synchronization for professional profiles.
  * Updated imports to address "no exported member" errors in certain environments.
  */
-import { initializeApp, getApps, getApp } from "firebase/app";
-// Use a namespaced import to resolve potential module resolution issues with Firebase Auth exports
-import * as FirebaseAuth from "firebase/auth";
+import { signInWithPopup } from 'firebase/auth';
+import { auth, provider as googleProvider } from './firebase';
 
 /**
  * NEURAL PROCESSING CORE
@@ -24,8 +23,7 @@ import * as FirebaseAuth from "firebase/auth";
 import { GoogleGenAI, Type } from "@google/genai";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
-// Destructure Firebase Auth members for cleaner usage while bypassing the module resolution error
-const { getAuth, GoogleAuthProvider, signInWithPopup } = FirebaseAuth as any;
+// Firebase auth utilities imported from ./firebase and 'firebase/auth'
 
 // --- TYPES & INTERFACES ---
 
@@ -213,25 +211,7 @@ const searchGlobalMarketData = async (query: string): Promise<{text: string, sou
   };
 };
 
-// --- INITIALIZATION ---
-
-const firebaseConfig = { 
-  apiKey: "demo-key", 
-  authDomain: "demo.firebaseapp.com", 
-  projectId: "demo-project",
-  appId: "demo-app-id"
-};
-
-// Standard Firebase v9 modular initialization
-const getFirebaseApp = () => {
-  const apps = getApps();
-  if (apps.length > 0) return apps[0];
-  return initializeApp(firebaseConfig);
-};
-
-const app = getFirebaseApp();
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+// Firebase initialized in `./firebase.ts` — use `auth` and `provider` exports from there.
 
 // --- COMPONENTS ---
 

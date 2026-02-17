@@ -11,8 +11,9 @@ import {
  * FIREBASE AUTHENTICATION
  * Handles user identity verification via Google OAuth.
  */
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, googleProvider } from './firebase';
+
 
 /**
  * CORE MODULES
@@ -25,18 +26,8 @@ import { INTEREST_QUESTIONS, APTITUDE_QUESTIONS, CAREER_PROFILES } from './const
 import { getCareerRecommendations, getQuickMarketPulse, searchGlobalMarketData } from './geminiService';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
-// Initialize Firebase with demo configuration
-const firebaseConfig = {
-  apiKey: "AIzaSy_demo_key", 
-  authDomain: "pathmind-ai.firebaseapp.com",
-  projectId: "pathmind-ai",
-  storageBucket: "pathmind-ai.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+// Firebase initialization moved to `./firebase.ts` — imports at the top of this file.
+
 
 // --- SHARED UI COMPONENTS ---
 
@@ -487,30 +478,19 @@ const RoadmapView: React.FC<{ match: CareerMatch }> = ({ match }) => (
  * LOGIN PAGE
  * Handles secure authentication with a high-stakes terminal aesthetic.
  */
-const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
+const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const userObj: User = {
-        id: result.user.uid,
-        name: result.user.displayName || "Operative",
-        email: result.user.email || "",
-        photoURL: result.user.photoURL || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${result.user.uid}`
-      };
-      onLogin(userObj);
-    } catch (error) {
-      // Demo fallback if Firebase is not active
-      const dummy: User = { 
-        id: 'dev-001', 
-        name: 'Lead Architect', 
-        email: 'architect@pathmind.ai', 
-        photoURL: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Architect' 
-      };
-      onLogin(dummy);
-    } finally { setLoading(false); }
+      await signInWithPopup(auth, googleProvider);
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -521,39 +501,36 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
         animate={{ opacity: 1, y: 0 }} 
         className="z-10 w-full max-w-xl glass-card p-20 rounded-[64px] border border-white/10 text-center"
       >
-        <div className="bg-gradient-to-br from-cyan-500 to-violet-600 w-32 h-32 rounded-[40px] flex items-center justify-center mx-auto mb-16 shadow-4xl shadow-cyan-500/30">
+        <div className="bg-gradient-to-br from-cyan-500 to-violet-600 w-32 h-32 rounded-[40px] flex items-center justify-center mx-auto mb-16">
           <Terminal className="text-white w-16 h-16" />
         </div>
-        <h1 className="text-5xl font-black text-white mb-6 tracking-tighter uppercase italic">PathMind<span className="text-cyan-400 not-italic">AI</span></h1>
-        <p className="text-slate-500 mb-16 font-medium text-xl">Identity verification required for <br />Protocol Access.</p>
-        
+
+        <h1 className="text-5xl font-black text-white mb-6">
+          PathMind<span className="text-cyan-400">AI</span>
+        </h1>
+
         <motion.button 
-          whileHover={!loading ? { scale: 1.05 } : {}}
-          whileTap={!loading ? { scale: 0.95 } : {}}
           onClick={handleLogin}
           disabled={loading}
-          className={`w-full flex items-center justify-center gap-6 p-8 rounded-3xl font-black uppercase text-sm tracking-[0.3em] transition-all shadow-3xl group border border-white/10 ${
-            loading ? 'bg-slate-800 text-slate-500' : 'bg-white text-slate-950 hover:bg-cyan-400 hover:text-white'
-          }`}
+          className="w-full flex items-center justify-center gap-6 p-8 rounded-3xl font-black uppercase text-sm transition-all shadow-3xl border border-white/10 bg-white text-slate-950 hover:bg-cyan-400 hover:text-white"
         >
           {loading ? (
-            <div className="flex items-center gap-4">
-              <Loader2 className="w-7 h-7 animate-spin" />
-              <span>Verifying Token...</span>
-            </div>
+            <>
+              <Loader2 className="w-6 h-6 animate-spin" />
+              Signing In...
+            </>
           ) : (
             <>
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-6 h-6 group-hover:scale-110 transition-transform" />
-              <span>Identity Hub Login</span>
+              <img src="https://www.google.com/favicon.ico" className="w-6 h-6" />
+              Continue with Google
             </>
           )}
         </motion.button>
-        
-        <p className="mt-12 text-[10px] text-slate-600 font-black uppercase tracking-[0.4em] mono">Encrypted Session // SHA-256</p>
       </motion.div>
     </div>
   );
 };
+
 
 /**
  * ROOT APPLICATION COMPONENT
@@ -567,10 +544,23 @@ export default function App() {
   const [matchResult, setMatchResult] = useState<CareerMatch | null>(null);
   const [assessmentScores, setAssessmentScores] = useState<AssessmentScores | null>(null);
 
-  // Load session from local storage on mount
+  // Firebase auth listener — automatically sync `user` and keep session after refresh
   useEffect(() => {
-    const saved = localStorage.getItem('pathmind_user');
-    if (saved) setUser(JSON.parse(saved));
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      if (fbUser) {
+        setUser({
+          id: fbUser.uid,
+          name: fbUser.displayName || fbUser.email || 'User',
+          email: fbUser.email || '',
+          photoURL: fbUser.photoURL || undefined
+        });
+        // If user just signed in from the login view, navigate to landing
+        setView(prev => (prev === 'login' ? 'landing' : prev));
+      } else {
+        setUser(null);
+      }
+    });
+    return unsubscribe;
   }, []);
 
   // View transition with history stack management
@@ -594,16 +584,11 @@ export default function App() {
     }
   };
 
-  const handleLogin = (u: User) => {
-    setUser(u);
-    localStorage.setItem('pathmind_user', JSON.stringify(u));
-    handleSetView('landing');
-  };
-
+  // NOTE: explicit login handler removed — App now reacts to Firebase auth state changes via onAuthStateChanged
+  
   const handleLogout = async () => {
     try { await signOut(auth); } catch (e) {}
     setUser(null);
-    localStorage.removeItem('pathmind_user');
     handleSetView('landing');
   };
 
@@ -660,7 +645,7 @@ export default function App() {
             /* App View Router */
             <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
               {view === 'landing' && <LandingPage onStart={() => handleSetView(user ? 'assessment' : 'login')} onExplore={() => handleSetView('trends')} />}
-              {view === 'login' && <LoginPage onLogin={handleLogin} />}
+              {view === 'login' && <LoginPage />}
               {view === 'trends' && <MarketTrends />}
               {view === 'assessment' && (
                 <div className="pt-48 pb-32 max-w-4xl mx-auto px-6">

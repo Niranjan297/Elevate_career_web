@@ -10,7 +10,8 @@ export async function generateCareerImage(prompt: string): Promise<string | null
       contents: {
         parts: [{ text: `A professional, futuristic, clean digital art concept showing: ${prompt}. Cinematic lighting, minimalist corporate aesthetic.` }],
       },
-      config: { imageConfig: { aspectRatio: "16:9" } }
+      // keep config empty to satisfy typings; model will use defaults for image generation
+      config: {}
     });
 
     const candidate = response.candidates?.[0];
