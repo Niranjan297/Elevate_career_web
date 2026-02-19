@@ -43,7 +43,7 @@ export const searchGlobalMarketData = async (query: string) => {
   } catch (error) {
     console.error("Gemini API Error:", error);
     return {
-      text: "ERROR: Neural connection to Gemini lost. Please check your terminal for errors or verify your VITE_GEMINI_API_KEY.",
+      text: "ERROR: I dont have API key so you may get choose some other options :)",
       sources: []
     };
   }

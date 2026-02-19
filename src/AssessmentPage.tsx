@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Layers, ArrowRight, Sparkles, Cpu, ScanLine, Activity } from 'lucide-react';
+import { Terminal, Layers, ArrowRight, ScanLine, Activity, Cpu } from 'lucide-react';
 import { QUESTIONS } from './constants';
 
 // --- COMPONENT: ROBUST TYPEWRITER ---
@@ -34,44 +34,6 @@ const TypewriterText = ({ text, delay = 0, speed = 30, onComplete }: { text: str
 
   return <span>{displayedText}<span className="animate-pulse text-cyan-400">_</span></span>;
 };
-
-// --- COMPONENT: NEURAL BACKGROUND (The "Brain Scan" Vibe) ---
-const NeuralBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {/* 1. Moving Grid */}
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-    
-    {/* 2. Ambient Glows */}
-    <motion.div 
-      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-      transition={{ duration: 8, repeat: Infinity }}
-      className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-[120px]" 
-    />
-    <motion.div 
-      animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
-      transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-      className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-violet-600/10 rounded-full blur-[120px]" 
-    />
-
-    {/* 3. Floating Neural Nodes */}
-    {[...Array(6)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute w-1 h-1 bg-cyan-400 rounded-full"
-        initial={{ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, opacity: 0 }}
-        animate={{ 
-          y: [null, Math.random() * -100], 
-          opacity: [0, 1, 0] 
-        }}
-        transition={{ 
-          duration: Math.random() * 5 + 5, 
-          repeat: Infinity, 
-          delay: Math.random() * 5 
-        }}
-      />
-    ))}
-  </div>
-);
 
 interface AssessmentProps {
   onComplete: (answers: Record<string, number>) => void;
@@ -124,10 +86,9 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden relative font-sans text-left bg-[#020617]">
+    // STRIPPED OUT bg-[#020617] and min-h-screen so it floats over the global grid
+    <div className="w-full flex flex-col items-center justify-center py-10 relative font-sans text-left">
       
-      <NeuralBackground />
-
       <AnimatePresence mode="wait">
         
         {/* --- STATE 1: SYSTEM BOOT (THE INTRO) --- */}
@@ -140,8 +101,8 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
             transition={{ duration: 0.8 }}
             className="relative z-10 w-full max-w-xl"
           >
-            {/* Glass Container */}
-            <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            {/* Upgraded Glass Container */}
+            <div className="bg-[#020617]/60 backdrop-blur-xl border border-white/10 rounded-[40px] p-8 md:p-12 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden">
                 
                 {/* Top Scanner Line */}
                 <motion.div 
@@ -155,11 +116,11 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
                     
                     {/* Header Tag */}
                     <div className="flex justify-between items-center">
-                       <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1">
+                       <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5">
                           <Terminal className="w-3 h-3 text-cyan-400" />
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Boot // v4.2</span>
+                          <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">System Boot // v4.2</span>
                        </div>
-                       <Cpu className="w-4 h-4 text-slate-600 animate-pulse" />
+                       <Cpu className="w-4 h-4 text-cyan-500/50 animate-pulse" />
                     </div>
 
                     {/* Main Title Sequence */}
@@ -170,7 +131,7 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
                           animate={{ opacity: 1, y: 0 }}
                           className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight mb-2"
                         >
-                           <span className="text-slate-500 block text-2xl mb-2">Not sure what to do?</span>
+                           <span className="text-slate-400 block text-2xl mb-2 font-medium">Not sure what to do?</span>
                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">
                              Let's figure out <br/>what you're built for.
                            </span>
@@ -186,22 +147,22 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
                         transition={{ duration: 1 }}
                         className="space-y-6"
                       >
-                         <p className="text-slate-400 text-lg font-medium leading-relaxed">
-                            <span className="text-cyan-400">Analysis Protocol:</span> We will map your natural instincts, hidden talents, and work personality to find your ideal career path.
+                         <p className="text-slate-300 text-lg font-medium leading-relaxed bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <span className="text-cyan-400 font-bold">Analysis Protocol:</span> We will map your natural instincts, hidden talents, and work personality to find your ideal career path.
                          </p>
 
-                         <div className="flex gap-3 flex-wrap">
+                         <div className="flex gap-2 flex-wrap">
                             {['Interests', 'Thinking Style', 'Archetype', 'Salary Potential'].map((tag, i) => (
-                              <span key={i} className="px-3 py-1 rounded-md bg-white/5 border border-white/5 text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                              <span key={i} className="px-3 py-1 rounded-md bg-[#020617]/50 border border-white/10 text-[10px] font-bold text-slate-300 uppercase tracking-wider backdrop-blur-md">
                                 {tag}
                               </span>
                             ))}
                          </div>
                          
                          {/* The "Identity Hook" */}
-                         <div className="flex items-center gap-2 text-yellow-500/80 text-xs font-bold bg-yellow-500/10 px-4 py-2 rounded-lg border border-yellow-500/20 w-fit">
-                            <ScanLine className="w-3 h-3" />
-                            Built for students and early professionals still exploring their path.
+                         <div className="flex items-center gap-2 text-yellow-500/90 text-xs font-bold bg-yellow-500/10 px-4 py-3 rounded-xl border border-yellow-500/20 w-fit">
+                            <ScanLine className="w-4 h-4" />
+                            Built for students and early professionals exploring their path.
                          </div>
                       </motion.div>
                     )}
@@ -213,13 +174,13 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
                         animate={{ opacity: 1, y: 0 }}
                         className="pt-4"
                       >
-                        <div className="flex flex-col gap-3">
-                          <p className="text-center text-xs font-bold text-slate-500 uppercase tracking-widest animate-pulse">
+                        <div className="flex flex-col gap-4">
+                          <p className="text-center text-xs font-bold text-cyan-400/70 uppercase tracking-widest animate-pulse mono">
                             Takes 90 seconds. No login required.
                           </p>
                           <button
                               onClick={() => setHasStarted(true)}
-                              className="group w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-[1.02] active:scale-95 text-white font-bold text-lg py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3"
+                              className="group w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-[1.02] active:scale-95 text-white font-black text-lg py-5 rounded-2xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.4)] flex items-center justify-center gap-3 uppercase tracking-widest"
                           >
                               Start My Career Scan <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                           </button>
@@ -231,28 +192,28 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
           </motion.div>
         ) : (
           
-          /* --- STATE 2: THE QUESTIONS (Maintained your existing logic) --- */
+          /* --- STATE 2: THE QUESTIONS (Now inside a beautiful floating glass card) --- */
           <motion.div 
             key="assessment"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="w-full max-w-3xl relative z-10 flex flex-col h-[85vh]"
+            className="w-full max-w-3xl relative z-10 flex flex-col glass-card bg-[#020617]/60 backdrop-blur-2xl rounded-[48px] p-8 md:p-16 border border-white/10 shadow-[0_0_50px_rgba(6,182,212,0.15)]"
           >
             {/* Header (Fixed) */}
-            <div className="mb-6 shrink-0">
-              <div className="flex justify-between items-end text-xs font-bold tracking-[0.2em] text-slate-500 mb-4 uppercase">
-                <span className="flex items-center gap-2 text-cyan-400">
+            <div className="mb-10 shrink-0">
+              <div className="flex justify-between items-end text-xs font-black tracking-[0.2em] text-slate-500 mb-5 uppercase mono">
+                <span className="flex items-center gap-3 text-cyan-400 bg-cyan-500/10 px-4 py-2 rounded-lg border border-cyan-500/20">
                    <Layers className="w-4 h-4"/>
                    PHASE: {currentQuestion.type}
                 </span>
-                <span className="text-slate-400"> <span className="text-white">{currentIndex + 1}</span> / {allQuestions.length}</span>
+                <span className="bg-white/5 px-4 py-2 rounded-lg border border-white/10 text-slate-400"> <span className="text-white">{currentIndex + 1}</span> / {allQuestions.length}</span>
               </div>
               
               {/* Progress Bar */}
-              <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-[#020617] border border-white/5 rounded-full overflow-hidden shadow-inner">
                 <motion.div 
-                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-600" 
+                  className="h-full bg-gradient-to-r from-cyan-500 to-violet-600 shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
                   initial={{ width: 0 }} 
                   animate={{ width: `${progress}%` }} 
                   transition={{ duration: 0.5, ease: "circOut" }} 
@@ -260,8 +221,8 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
               </div>
             </div>
 
-            {/* Question Card (Scrollable) */}
-            <div className="relative flex-1 min-h-0"> 
+            {/* Question Card (Content Flows Naturally) */}
+            <div className="relative flex-1"> 
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div 
                   key={currentIndex}
@@ -269,42 +230,42 @@ const AssessmentPage = ({ onComplete }: AssessmentProps) => {
                   initial="hidden"
                   animate="show"
                   exit="exit"
-                  className="absolute inset-0 overflow-y-auto pr-2 pb-20 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+                  className="w-full"
                 >
-                  <div className="mb-8 min-h-[80px]">
-                      <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight">
+                  <div className="mb-10 min-h-[80px]">
+                      <h2 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight drop-shadow-lg">
                         <TypewriterText text={currentQuestion.text} delay={100} speed={20} />
                       </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3"> 
+                  <div className="grid grid-cols-1 gap-4"> 
                     {currentQuestion.options?.map((opt, idx) => (
                       <motion.button 
                         key={idx}
-                        whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.08)" }}
+                        whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleAnswer(idx)} 
-                        className={`relative p-5 rounded-xl text-left border transition-all duration-200 group
+                        className={`relative p-6 rounded-2xl text-left border transition-all duration-300 group shadow-lg
                           ${selectedOption === idx 
-                              ? 'bg-blue-600/20 border-blue-500 ring-1 ring-blue-500 z-10' 
-                              : 'bg-white/5 border-white/10 hover:border-white/20'
+                              ? 'bg-cyan-500/20 border-cyan-400 ring-1 ring-cyan-400 z-10 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                              : 'bg-white/5 border-white/10 hover:bg-cyan-500/10 hover:border-cyan-500/30'
                           }
                         `}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-base font-medium transition-colors ${selectedOption === idx ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className={`text-lg font-bold transition-colors ${selectedOption === idx ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
                               {opt.label}
                           </span>
                           {selectedOption === idx && (
-                             <div className="w-2 h-2 bg-blue-400 rounded-full shadow-[0_0_10px_rgba(96,165,250,0.8)]" />
+                             <div className="w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                           )}
                         </div>
                       </motion.button>
                     ))}
                   </div>
                   
-                  <div className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                      <Activity className="w-3 h-3 animate-pulse text-cyan-500" /> 
+                  <div className="mt-10 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mono bg-white/5 w-fit px-4 py-2 rounded-lg border border-white/5">
+                      <Activity className="w-4 h-4 animate-pulse text-cyan-500" /> 
                       <span>Awaiting Input...</span>
                   </div>
                 </motion.div>
