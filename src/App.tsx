@@ -10,7 +10,7 @@ import {
  * FIREBASE AUTHENTICATION
  */
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
 /**
  * CORE MODULES
@@ -24,17 +24,26 @@ import SkillGapAnalyzer from './SkillGapAnalyzer';
 import ExecutionPlanDashboard from './ExecutionPlanDashboard';
 
 // Initialize Firebase (Replace with your actual config)
+// const firebaseConfig = {
+//   apiKey: "AIzaSy_demo_key", 
+//   authDomain: "pathmind-ai.firebaseapp.com",
+//   projectId: "pathmind-ai",
+//   storageBucket: "pathmind-ai.appspot.com",
+//   messagingSenderId: "123456789",
+//   appId: "1:123456789:web:abcdef"
+// };
 const firebaseConfig = {
-  apiKey: "AIzaSy_demo_key", 
-  authDomain: "pathmind-ai.firebaseapp.com",
-  projectId: "pathmind-ai",
-  storageBucket: "pathmind-ai.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+
 
 // --- SHARED UI COMPONENTS ---
 
@@ -54,69 +63,39 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   </motion.button>
 );
 
-const Navbar: React.FC<{ 
-  currentView: ViewState; 
-  setView: (v: ViewState) => void;
-  user: User | null;
-  onLogout: () => void;
-  isLanding: boolean;
-}> = ({ currentView, setView, user, onLogout, isLanding }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const isTransparent = isLanding && !isScrolled;
-
-  return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 w-full z-50 px-6 md:px-10 py-6 flex justify-between items-center transition-all duration-500 ease-in-out ${
-        isTransparent 
-          ? 'bg-transparent border-transparent' 
-          : 'bg-[#020617]/80 backdrop-blur-3xl border-b border-white/5 shadow-2xl'
-      }`}
-    >
-      <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setView('landing')}>
-        <div className="bg-gradient-to-br from-cyan-500 to-violet-600 p-2.5 rounded-xl group-hover:rotate-12 transition-all shadow-lg shadow-cyan-500/20">
-          <Binary className="text-white w-6 h-6" />
-        </div>
-        <span className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase italic">PathMind<span className="text-cyan-400 not-italic">AI</span></span>
+const Navbar: React.FC<{ user: User | null, onLogin: () => void, onLogout: () => void }> = ({ user, onLogin, onLogout }) => (
+  <nav className="fixed top-0 left-0 right-0 z-[100] p-6 flex justify-between items-center bg-gradient-to-b from-[#020617] to-transparent pointer-events-none">
+    {/* Logo */}
+    <div className="flex items-center gap-2 pointer-events-auto">
+      <div className="bg-gradient-to-br from-cyan-500 to-violet-600 text-white font-black p-2 rounded-lg text-xs leading-none">
+        01<br/>10
       </div>
-      
-      <div className="hidden lg:flex gap-12 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-        <button onClick={() => setView('landing')} className={`hover:text-cyan-400 transition-colors ${currentView === 'landing' ? 'text-cyan-400' : ''}`}>Protocol</button>
-        <button onClick={() => setView('assessment')} className={`hover:text-cyan-400 transition-colors ${currentView === 'assessment' ? 'text-cyan-400' : ''}`}>Neural Sync</button>
-        <button onClick={() => setView('trends')} className={`hover:text-cyan-400 transition-colors ${currentView === 'trends' ? 'text-cyan-400' : ''}`}>Market Grounding</button>
-      </div>
+      <span className="text-white font-black text-xl tracking-tighter italic">PATHMINDAI</span>
+    </div>
 
-      <div className="flex items-center gap-6">
-        {user ? (
-          <div className="flex items-center gap-4 bg-white/5 pl-6 pr-2 py-2 rounded-2xl border border-white/10 backdrop-blur-md">
-            <div className="text-right hidden sm:block">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Operative</p>
-              <p className="text-xs font-bold text-white leading-tight">{user.name}</p>
-            </div>
-            <button onClick={onLogout} title="Terminate Session">
-              <img src={user.photoURL} alt="User Avatar" className="w-10 h-10 rounded-xl border-2 border-cyan-500/30 hover:scale-105 transition-transform" />
+    {/* Auth Section */}
+    <div className="pointer-events-auto">
+      {user ? (
+        <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-2 pr-4 rounded-full backdrop-blur-md">
+          <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-cyan-500/50" />
+          <div className="flex flex-col">
+            <span className="text-white font-bold text-xs">{user.name}</span>
+            <button onClick={onLogout} className="text-slate-400 text-[10px] uppercase font-bold text-left hover:text-rose-400 transition-colors">
+              Disconnect
             </button>
           </div>
-        ) : (
-          <button 
-            onClick={() => setView('login')}
-            className="bg-white text-slate-950 px-6 md:px-10 py-4 rounded-xl text-xs font-black hover:bg-cyan-400 hover:text-white transition-all flex items-center gap-3 shadow-2xl active:scale-95 uppercase tracking-widest"
-          >
-            Authenticate
-          </button>
-        )}
-      </div>
-    </motion.nav>
-  );
-};
+        </div>
+      ) : (
+        <button 
+          onClick={onLogin}
+          className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-cyan-400 hover:text-white transition-all shadow-lg flex items-center gap-2"
+        >
+          <UserIcon className="w-4 h-4" /> Authenticate
+        </button>
+      )}
+    </div>
+  </nav>
+);
 
 // --- LANDING PAGE ---
 const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({ onStart, onExplore }) => {
@@ -498,6 +477,24 @@ export default function App() {
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
+  // NEW: Listen for login/logout automatically
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        // Save the Firebase user into our custom User type
+        setUser({
+          id: currentUser.uid,
+          name: currentUser.displayName || 'Explorer',
+          email: currentUser.email || '',
+          photoURL: currentUser.photoURL || ''
+        });
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const handleSetView = (next: ViewState) => {
     if (next !== view) {
       setHistory(prev => [...prev, view]);
@@ -521,6 +518,17 @@ export default function App() {
     setUser(u);
     localStorage.setItem('pathmind_user', JSON.stringify(u));
     handleSetView('landing');
+  };
+
+  // NEW: Function to trigger the Google Sign-In popup from the Navbar
+  const handleLoginClick = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Successfully logged in:", result.user.displayName);
+    } catch (error) {
+      console.error("Login Failed:", error);
+      alert("Authentication failed. Please check your console.");
+    }
   };
 
   const handleLogout = async () => {
@@ -550,7 +558,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100">
-      <Navbar currentView={view} setView={handleSetView} user={user} onLogout={handleLogout} isLanding={view === 'landing'} />
+      <Navbar user={user} onLogin={handleLoginClick} onLogout={handleLogout} />
       {view !== 'landing' && <BackButton onClick={handleGoBack} />}
       <main>
         <AnimatePresence mode="wait">

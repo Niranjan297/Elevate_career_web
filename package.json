@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.41.0",
+    "@google/generative-ai": "^0.24.1",
     "firebase": "^12.9.0",
     "framer-motion": "11.11.11",
     "lucide-react": "0.446.0",
@@ -24,5 +25,9 @@
     "postcss": "^8.5.6",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "overrides": {
+    "minimatch": "^10.2.1"
   }
 }
+
