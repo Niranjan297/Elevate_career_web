@@ -512,7 +512,15 @@ export const CAREER_PROFILES: CareerProfile[] = [
     marketDemand: 'Growing',
     matchScore: 0,
     matchReason: [],
-    roadmap: ['Learn programming fundamentals', 'Build projects', 'Apply for internships']
+    roadmap: ['Learn programming fundamentals', 'Build projects', 'Apply for internships'],
+    requiredSkills: [
+      { name: 'Programming Logic', importance: 'Critical', estimatedWeeksToLearn: 4 },
+      { name: 'Data Structures & Algorithms', importance: 'Critical', estimatedWeeksToLearn: 12 },
+      { name: 'Python or Java', importance: 'Critical', estimatedWeeksToLearn: 8 },
+      { name: 'Version Control (Git)', importance: 'Important', estimatedWeeksToLearn: 2 },
+      { name: 'Database Management (SQL)', importance: 'Important', estimatedWeeksToLearn: 4 },
+      { name: 'Cloud Basics (AWS/Azure)', importance: 'Optional', estimatedWeeksToLearn: 6 }
+    ]
   },
   {
     title: 'Mechanical Engineer',
@@ -526,7 +534,15 @@ export const CAREER_PROFILES: CareerProfile[] = [
     marketDemand: 'Stable',
     matchScore: 0,
     matchReason: [],
-    roadmap: ['Study core mechanics', 'Practice CAD & prototyping', 'Internship']
+    roadmap: ['Study core mechanics', 'Practice CAD & prototyping', 'Internship'],
+    requiredSkills: [
+      { name: 'Thermodynamics & Mechanics', importance: 'Critical', estimatedWeeksToLearn: 16 },
+      { name: 'CAD Software (CATIA/Solidworks)', importance: 'Critical', estimatedWeeksToLearn: 8 },
+      { name: 'Material Science', importance: 'Critical', estimatedWeeksToLearn: 12 },
+      { name: 'Fluid Mechanics', importance: 'Important', estimatedWeeksToLearn: 10 },
+      { name: 'Manufacturing Processes', importance: 'Important', estimatedWeeksToLearn: 8 },
+      { name: 'AutoCAD Basics', importance: 'Optional', estimatedWeeksToLearn: 4 }
+    ]
   },
   {
     title: 'Doctor (MBBS)',
@@ -540,6 +556,14 @@ export const CAREER_PROFILES: CareerProfile[] = [
     marketDemand: 'Stable',
     matchScore: 0,
     matchReason: [],
-    roadmap: ['Complete medical school', 'House job / residency', 'Specialize']
+    roadmap: ['Complete medical school', 'House job / residency', 'Specialize'],
+    requiredSkills: [
+      { name: 'Human Anatomy', importance: 'Critical', estimatedWeeksToLearn: 20 },
+      { name: 'Physiology', importance: 'Critical', estimatedWeeksToLearn: 16 },
+      { name: 'Pharmacology', importance: 'Critical', estimatedWeeksToLearn: 14 },
+      { name: 'Pathology', importance: 'Important', estimatedWeeksToLearn: 12 },
+      { name: 'Clinical Diagnosis', importance: 'Important', estimatedWeeksToLearn: 24 },
+      { name: 'Medical Imaging Basics', importance: 'Optional', estimatedWeeksToLearn: 6 }
+    ]
   }
 ];

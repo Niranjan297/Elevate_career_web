@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { AssessmentScores, CareerMatch } from "./types";
 
 export async function generateCareerImage(prompt: string): Promise<string | null> {
@@ -59,32 +59,32 @@ export async function getCareerRecommendations(scores: AssessmentScores, topCare
       config: {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "object",
           properties: {
-            description: { type: Type.STRING },
-            strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-            gaps: { type: Type.ARRAY, items: { type: Type.STRING } },
+            description: { type: "string" },
+            strengths: { type: "array", items: { type: "string" } },
+            gaps: { type: "array", items: { type: "string" } },
             roadmap: {
-              type: Type.ARRAY,
+              type: "array",
               items: {
-                type: Type.OBJECT,
+                type: "object",
                 properties: {
-                  phase: { type: Type.STRING },
-                  title: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  skills: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  phase: { type: "string" },
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  skills: { type: "array", items: { type: "string" } }
                 },
                 required: ["phase", "title", "description", "skills"]
               }
             },
             resources: {
-              type: Type.ARRAY,
+              type: "array",
               items: {
-                type: Type.OBJECT,
+                type: "object",
                 properties: {
-                  name: { type: Type.STRING },
-                  url: { type: Type.STRING },
-                  type: { type: Type.STRING }
+                  name: { type: "string" },
+                  url: { type: "string" },
+                  type: { type: "string" }
                 },
                 required: ["name", "url", "type"]
               }

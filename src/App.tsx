@@ -16,10 +16,12 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/
  * CORE MODULES
  */
 import { ViewState, User } from '../types';
-import { CareerProfile } from './types';
+import { CareerProfile, SkillGapReport } from './types';
 import { calculateCareerPath } from './utils/logic'; // The new Logic Engine
 import { getQuickMarketPulse, searchGlobalMarketData } from '../geminiService';
 import AssessmentPage from './AssessmentPage';
+import SkillGapAnalyzer from './SkillGapAnalyzer';
+import ExecutionPlanDashboard from './ExecutionPlanDashboard';
 
 // Initialize Firebase (Replace with your actual config)
 const firebaseConfig = {
@@ -282,18 +284,25 @@ const ResultsDashboard: React.FC<{ profile: CareerProfile, setView: (v: ViewStat
         <div className="lg:col-span-4 space-y-6">
            <div className="glass-card p-10 rounded-[48px] border border-white/10 bg-gradient-to-br from-violet-600/10 to-blue-600/10">
               <h4 className="text-xl font-black text-white mb-4 uppercase italic">Next Steps</h4>
-              <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                Your profile has been saved to the local session. You can explore market trends for this role or restart the scan.
-              </p>
+              
+              {/* UPDATED BUTTON: Routes to Skill Gap */}
               <button 
-                onClick={() => setView('trends')}
-                className="w-full bg-white text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-cyan-400 hover:text-white transition-all mb-4"
+                onClick={() => setView('skill-gap')} 
+                className="w-full bg-cyan-500 text-slate-950 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-cyan-400 transition-all mb-4"
+              >
+                Analyze Skill Gaps
+              </button>
+
+              <button 
+                onClick={() => setView('trends')} 
+                className="w-full bg-white text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all mb-4"
               >
                 Explore Market Data
               </button>
+              
               <button 
-                 onClick={() => setView('assessment')}
-                 className="w-full bg-transparent border border-white/20 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
+                onClick={() => setView('assessment')} 
+                className="w-full bg-transparent border border-white/20 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
               >
                 Retake Assessment
               </button>
@@ -480,6 +489,9 @@ export default function App() {
   
   // New State: Stores the Final Profile object
   const [careerProfile, setCareerProfile] = useState<CareerProfile | null>(null);
+  
+  // NEW: State to hold the gap report so we can pass it to the 90-Day Plan
+  const [gapReport, setGapReport] = useState<SkillGapReport | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('pathmind_user');
@@ -567,6 +579,26 @@ export default function App() {
               {view === 'results' && careerProfile && (
                 <div className="max-w-7xl mx-auto px-6">
                    <ResultsDashboard profile={careerProfile} setView={handleSetView} />
+                </div>
+              )}
+              
+              {/* NEW: SKILL GAP ROUTE */}
+              {view === 'skill-gap' && careerProfile && (
+                <div className="max-w-7xl mx-auto px-6 pt-20 pb-20">
+                  <SkillGapAnalyzer 
+                    profile={careerProfile} 
+                    onGeneratePlan={(report) => {
+                      setGapReport(report);
+                      handleSetView('execution-plan');
+                    }} 
+                  />
+                </div>
+              )}
+
+              {/* FEATURE 5: EXECUTION PLAN ROUTE */}
+              {view === 'execution-plan' && gapReport && (
+                <div className="max-w-7xl mx-auto px-6 pt-32 pb-20">
+                  <ExecutionPlanDashboard report={gapReport} />
                 </div>
               )}
 

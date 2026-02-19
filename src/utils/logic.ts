@@ -1,5 +1,5 @@
 import { QUESTIONS, CAREER_PROFILES } from '../constants';
-import { CareerBranch, CareerProfile, CareerStream, PersonalityTrait } from '../types';
+import { CareerBranch, CareerProfile, CareerStream, PersonalityTrait, SkillGapReport, SkillRequirement } from '../types';
 
 interface Scoreboard {
   streams: Record<string, number>;
@@ -103,4 +103,46 @@ export const calculateCareerPath = (userAnswers: Record<string, number>): Career
     matchScore: normalizedScore,
     matchReason: reasons
   } as CareerProfile & { matchReason?: string[] };
+};
+
+export const analyzeSkillGap = (userSkills: string[], targetProfile: CareerProfile): SkillGapReport => {
+  const matched: SkillRequirement[] = [];
+  const critical: SkillRequirement[] = [];
+  const important: SkillRequirement[] = [];
+  const optional: SkillRequirement[] = [];
+  
+  let totalWeeks = 0;
+
+  // Normalize user skills for easy comparison (lowercase, trim)
+  const normalizedUserSkills = userSkills.map(s => s.toLowerCase().trim());
+
+  targetProfile.requiredSkills.forEach(skill => {
+    // Check if the user already has this skill
+    const hasSkill = normalizedUserSkills.includes(skill.name.toLowerCase().trim());
+
+    if (hasSkill) {
+      matched.push(skill);
+    } else {
+      // If missing, sort it into the correct gap bucket and add to timeline
+      if (skill.importance === 'Critical') {
+        critical.push(skill);
+        totalWeeks += skill.estimatedWeeksToLearn;
+      } else if (skill.importance === 'Important') {
+        important.push(skill);
+        totalWeeks += skill.estimatedWeeksToLearn;
+      } else if (skill.importance === 'Optional') {
+        optional.push(skill);
+        // We typically don't add optional skills to the baseline timeline
+      }
+    }
+  });
+
+  return {
+    career: targetProfile.title,
+    matchedSkills: matched,
+    criticalGaps: critical,
+    importantGaps: important,
+    optionalGaps: optional,
+    totalWeeksToClose: totalWeeks // e.g., "Requires roughly 24 weeks to reach baseline employability"
+  };
 };

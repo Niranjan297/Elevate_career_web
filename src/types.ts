@@ -99,6 +99,15 @@ export interface Question {
   options: Option[];
 }
 
+// --- SKILL MANAGEMENT ---
+export type SkillImportance = 'Critical' | 'Important' | 'Optional';
+
+export interface SkillRequirement {
+  name: string;
+  importance: SkillImportance;
+  estimatedWeeksToLearn: number; // Time to close the gap
+}
+
 // --- FINAL PROFILE STRUCTURE ---
 export interface CareerProfile {
   title: string;
@@ -116,4 +125,17 @@ export interface CareerProfile {
   matchScore: number;
   matchReason: string[]; // The "Why?" Engine
   roadmap: string[];
+  
+  // NEW: Skill Requirements
+  requiredSkills: SkillRequirement[]; // The standard to measure against
+}
+
+// --- SKILL GAP ANALYSIS ---
+export interface SkillGapReport {
+  career: string;
+  matchedSkills: SkillRequirement[];
+  criticalGaps: SkillRequirement[];
+  importantGaps: SkillRequirement[];
+  optionalGaps: SkillRequirement[];
+  totalWeeksToClose: number; // The timeline to become employable
 }
