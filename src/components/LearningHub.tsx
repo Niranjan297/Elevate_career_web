@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Youtube, Loader2, PlayCircle, Activity, CheckCircle } from 'lucide-react';
+import { Youtube, CheckCircle2, PlayCircle, BookOpen, Loader2 } from 'lucide-react';
 import { fetchCareerVideos } from '../utils/youtubeService';
+
+// --- FIREBASE IMPORTS ---
+import { getAuth } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
 interface LearningHubProps {
   careerTitle: string;
@@ -9,167 +13,161 @@ interface LearningHubProps {
 
 const LearningHub: React.FC<LearningHubProps> = ({ careerTitle }) => {
   const [videos, setVideos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // NEW: Tracking State
   const [completedVideos, setCompletedVideos] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 1. Load Videos AND Saved Progress
+  // Initialize Firebase instances
+  const auth = getAuth();
+  const db = getFirestore();
+
   useEffect(() => {
-    let isMounted = true;
     const loadContent = async () => {
-      const data = await fetchCareerVideos(careerTitle);
-      if (isMounted) {
-        setVideos(data);
+      setLoading(true);
+      try {
+        // Fetch videos from the YouTube Service
+        const vids = await fetchCareerVideos(careerTitle);
+        setVideos(vids);
+
+        // Load progress from Firebase or LocalStorage
+        const user = auth.currentUser;
+        const localKey = `pathmind_videos_${careerTitle.replace(/\s+/g, '_')}`;
+
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userRef);
+          
+          if (docSnap.exists() && docSnap.data().learningProgress?.[careerTitle]) {
+            setCompletedVideos(docSnap.data().learningProgress[careerTitle]);
+          } else {
+            // Check local fallback
+            const saved = localStorage.getItem(localKey);
+            if (saved) setCompletedVideos(JSON.parse(saved));
+          }
+        } else {
+           const saved = localStorage.getItem(localKey);
+           if (saved) setCompletedVideos(JSON.parse(saved));
+        }
+
+      } catch (error) {
+        console.error("Failed to load videos:", error);
+      } finally {
         setLoading(false);
       }
     };
-    
-    // Load saved progress from memory based on the specific career
-    const savedProgress = localStorage.getItem(`pathmind_progress_${careerTitle.replace(/\s+/g, '_')}`);
-    if (savedProgress) {
-      setCompletedVideos(JSON.parse(savedProgress));
-    }
 
     loadContent();
-    return () => { isMounted = false; };
   }, [careerTitle]);
 
-  // 2. Toggle Completion Function
-  const toggleComplete = (videoId: string) => {
-    let newCompleted;
-    if (completedVideos.includes(videoId)) {
-      // Remove it (uncheck)
-      newCompleted = completedVideos.filter(id => id !== videoId);
-    } else {
-      // Add it (check)
-      newCompleted = [...completedVideos, videoId];
-    }
+  const toggleVideoCompletion = async (videoId: string) => {
+    let updated: string[] = [];
     
-    setCompletedVideos(newCompleted);
-    // Save to memory instantly
-    localStorage.setItem(`pathmind_progress_${careerTitle.replace(/\s+/g, '_')}`, JSON.stringify(newCompleted));
+    setCompletedVideos(prev => {
+      updated = prev.includes(videoId) ? prev.filter(id => id !== videoId) : [...prev, videoId];
+      return updated;
+    });
+
+    const localKey = `pathmind_videos_${careerTitle.replace(/\s+/g, '_')}`;
+    localStorage.setItem(localKey, JSON.stringify(updated));
+
+    // Save to Firebase Cloud
+    if (auth.currentUser) {
+      try {
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        await setDoc(userRef, {
+          learningProgress: {
+            [careerTitle]: updated
+          }
+        }, { merge: true });
+      } catch (error) {
+        console.error("Error saving video progress to cloud:", error);
+      }
+    }
   };
+
+  const progressPercentage = videos.length === 0 ? 0 : Math.round((completedVideos.length / videos.length) * 100);
 
   if (loading) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center relative z-20">
-        <Loader2 className="w-16 h-16 text-cyan-500 animate-spin mb-6 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
-        <h2 className="text-2xl font-black text-white uppercase tracking-widest mono italic drop-shadow-md">Indexing Syllabus...</h2>
+      <div className="w-full flex flex-col items-center justify-center py-32 z-20 relative">
+        <Loader2 className="w-16 h-16 text-cyan-500 animate-spin mb-6" />
+        <h3 className="text-2xl font-black text-white uppercase tracking-widest">Loading Masterclass...</h3>
       </div>
     );
   }
 
-  // Calculate Progress Percentage safely
-  const progressPercent = videos.length > 0 ? Math.round((completedVideos.length / videos.length) * 100) : 0;
-
   return (
-    <div className="pt-10 pb-20 animate-in fade-in duration-700 relative z-20">
+    <div className="w-full relative z-20 py-10 animate-in fade-in slide-in-from-bottom-10 duration-700">
       
-      {/* HEADER & PROGRESS BAR */}
-      <div className="mb-16 text-left glass-card bg-[#020617]/60 backdrop-blur-2xl border border-white/10 p-10 rounded-[48px] shadow-[0_0_50px_rgba(6,182,212,0.1)]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-3 bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-xl border border-cyan-500/20 mb-6 backdrop-blur-md">
-              <Activity className="w-4 h-4 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] mono">Direct Training Stream</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-tight drop-shadow-lg">
-              Training <br /><span className="bg-gradient-to-r from-cyan-400 to-violet-600 bg-clip-text text-transparent italic">Modules.</span>
-            </h1>
+      {/* Header & Progress */}
+      <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-10 rounded-[40px] border border-white/10 mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 shadow-lg">
+        <div>
+          <div className="inline-flex items-center gap-2 bg-rose-500/10 text-rose-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.3em] border border-rose-500/20 mb-4 mono">
+            <Youtube className="w-4 h-4" /> Video Curriculum
           </div>
-          
-          {/* THE TRACKER STATS */}
-          <div className="bg-[#020617]/80 border border-white/10 p-6 rounded-3xl text-center min-w-[200px] shadow-inner">
-            <div className="text-5xl font-black text-white mb-2 tracking-tighter drop-shadow-md">{progressPercent}%</div>
-            <div className="text-[10px] font-bold text-cyan-400 uppercase tracking-[0.3em] mono">Syllabus Complete</div>
-          </div>
+          <h2 className="text-4xl font-black text-white tracking-tight mb-2">Learning Hub</h2>
+          <p className="text-slate-400">Curated foundational modules for <strong className="text-white">{careerTitle}</strong></p>
         </div>
 
-        {/* THE TRACKER BAR */}
-        <div className="h-3 bg-[#020617] rounded-full overflow-hidden border border-white/5 shadow-inner relative">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-violet-600 shadow-[0_0_15px_rgba(6,182,212,0.8)]"
-          />
+        <div className="bg-[#020617]/80 p-6 rounded-3xl border border-white/5 min-w-[200px] text-center shadow-inner">
+          <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Curriculum Progress</div>
+          <div className="text-4xl font-black text-white mb-3">{progressPercentage}%</div>
+          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-gradient-to-r from-rose-500 to-amber-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* VIDEO GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {videos.map((video, i) => {
-          const isDone = completedVideos.includes(video.id);
-
+      {/* Video Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {videos.map((video, idx) => {
+          const isCompleted = completedVideos.includes(video.id);
           return (
-            <motion.div 
-              key={video.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.15 }}
-              className={`glass-card rounded-[40px] border overflow-hidden group transition-all duration-300 backdrop-blur-xl relative flex flex-col
-                ${isDone 
-                  ? 'border-emerald-500/30 bg-emerald-950/20 shadow-[0_0_30px_rgba(16,185,129,0.05)]' 
-                  : 'border-white/10 bg-[#020617]/60 hover:border-cyan-500/40 shadow-lg'}
-              `}
-            >
-              {/* Video Player Area */}
-              <div className="aspect-video relative bg-black border-b border-white/10 shrink-0">
+            <div key={idx} className={`glass-card rounded-3xl overflow-hidden border transition-all duration-300 ${isCompleted ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-[#020617]/60 border-white/10 hover:border-cyan-500/30'}`}>
+              
+              {/* Video Player Embed */}
+              <div className="relative pt-[56.25%] w-full bg-black">
                 <iframe
-                  className={`w-full h-full transition-all duration-500 ${isDone ? 'opacity-40 grayscale hover:grayscale-0 hover:opacity-100' : ''}`}
+                  className="absolute inset-0 w-full h-full"
                   src={`https://www.youtube.com/embed/${video.id}`}
                   title={video.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  style={{ border: 0 }}
                 ></iframe>
-                
-                {/* Completed Overlay Badge */}
-                {isDone && (
-                  <motion.div 
-                    initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    className="absolute top-4 right-4 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)] flex items-center gap-2 z-10"
-                  >
-                    <CheckCircle className="w-3 h-3" /> Mastered
-                  </motion.div>
-                )}
               </div>
 
-              {/* Video Details Area */}
-              <div className="p-8 flex flex-col flex-grow">
-                <h3 className={`text-xl font-bold transition-colors line-clamp-2 mb-6 ${isDone ? 'text-emerald-400/70' : 'text-white group-hover:text-cyan-400'}`}>
-                  {video.title}
-                </h3>
-                
-                {/* Bottom Controls */}
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${isDone ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-white/5 text-rose-500 border-white/10'}`}>
-                      <Youtube className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-black uppercase tracking-widest text-slate-500 mono max-w-[120px] truncate">
-                      {video.channel}
-                    </span>
-                  </div>
+              {/* Video Controls */}
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight">{video.title}</h3>
+                <p className="text-sm text-slate-400 mb-6 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" /> {video.channel}
+                </p>
 
-                  {/* MARK AS COMPLETE BUTTON */}
-                  <button 
-                    onClick={() => toggleComplete(video.id)}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
-                      isDone 
-                        ? 'bg-transparent text-slate-500 border border-slate-700 hover:text-rose-400 hover:border-rose-500/50' 
-                        : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-                    }`}
-                  >
-                    {isDone ? 'Undo' : 'Mark Complete'}
-                  </button>
-                </div>
+                <button
+                  onClick={() => toggleVideoCompletion(video.id)}
+                  className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+                    isCompleted 
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' 
+                      : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <><CheckCircle2 className="w-5 h-5" /> Module Completed</>
+                  ) : (
+                    <><PlayCircle className="w-5 h-5" /> Mark as Complete</>
+                  )}
+                </button>
               </div>
-            </motion.div>
+
+            </div>
           );
         })}
       </div>
+
     </div>
   );
 };

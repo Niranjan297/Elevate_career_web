@@ -1,198 +1,142 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckCircle2, AlertOctagon, AlertTriangle, Clock, ArrowRight, BrainCircuit } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { CheckCircle2, Circle, Zap, ArrowRight, Target, Activity, Loader2 } from 'lucide-react';
 import { CareerProfile, SkillGapReport } from './types';
-import { analyzeSkillGap } from './utils/logic'; // The logic function we just wrote
+import { analyzeSkillGap } from './utils/logic';
 
 interface SkillGapAnalyzerProps {
   profile: CareerProfile;
-  onGeneratePlan: (report: SkillGapReport) => void; // Moves to the 90-Day Plan
+  onGeneratePlan: (report: SkillGapReport) => void;
 }
 
 const SkillGapAnalyzer: React.FC<SkillGapAnalyzerProps> = ({ profile, onGeneratePlan }) => {
-  const [step, setStep] = useState<'audit' | 'report'>('audit');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [report, setReport] = useState<SkillGapReport | null>(null);
-
-  // Fallback skills if the profile hasn't been updated with requiredSkills yet
-  const fallbackSkills = profile.requiredSkills || [
-    { name: 'Domain Basics', importance: 'Critical', estimatedWeeksToLearn: 4 },
-    { name: 'Core Tooling (Software/Equipment)', importance: 'Critical', estimatedWeeksToLearn: 6 },
-    { name: 'Communication & Presentation', importance: 'Important', estimatedWeeksToLearn: 2 },
-    { name: 'Advanced Theory', importance: 'Optional', estimatedWeeksToLearn: 8 },
-  ];
+  const [isScanning, setIsScanning] = useState(false);
 
   const toggleSkill = (skillName: string) => {
-    setSelectedSkills(prev => 
-      prev.includes(skillName) 
-        ? prev.filter(s => s !== skillName)
-        : [...prev, skillName]
-    );
+    if (selectedSkills.includes(skillName)) {
+      setSelectedSkills(prev => prev.filter(s => s !== skillName));
+    } else {
+      setSelectedSkills(prev => [...prev, skillName]);
+    }
   };
 
   const handleAnalyze = () => {
-    // We pass a dummy profile if requiredSkills is missing, just to keep it safe
-    const targetProfile = { ...profile, requiredSkills: fallbackSkills };
-    const generatedReport = analyzeSkillGap(selectedSkills, targetProfile);
-    setReport(generatedReport);
-    setStep('report');
+    setIsScanning(true);
+    
+    // 1.5 second dramatic pause for the "AI Diagnostic" effect
+    setTimeout(() => {
+      const report = analyzeSkillGap(selectedSkills, profile);
+      onGeneratePlan(report);
+    }, 1500);
   };
 
+  if (isScanning) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center relative z-20">
+        <Loader2 className="w-24 h-24 text-cyan-500 animate-spin mb-10 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
+        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic drop-shadow-lg">
+          Compiling Gaps...
+        </h2>
+        <p className="text-cyan-400 font-bold mt-6 uppercase tracking-[0.6em] mono bg-[#020617]/50 px-6 py-2 rounded-full border border-cyan-500/20 backdrop-blur-sm">
+          Generating Execution Plan
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-5xl mx-auto py-10">
-      
-      <AnimatePresence mode="wait">
-        {step === 'audit' ? (
-          <motion.div 
-            key="audit"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="glass-card p-10 md:p-16 rounded-[48px] border border-white/10"
-          >
-            <div className="mb-10 text-center">
-              <BrainCircuit className="w-12 h-12 text-cyan-400 mx-auto mb-6" />
-              <h2 className="text-4xl font-black text-white mb-4">Skill Calibration</h2>
-              <p className="text-slate-400 text-lg">
-                To build your 90-Day Execution Plan for <span className="text-white font-bold">{profile.title}</span>, we need to know your baseline. 
-                <br/>Select the skills you already possess.
-              </p>
-            </div>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl mx-auto w-full relative z-20"
+    >
+      <div className="glass-card bg-[#020617]/60 backdrop-blur-2xl rounded-[48px] p-8 md:p-16 border border-white/10 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+        
+        {/* HEADER */}
+        <div className="mb-12 border-b border-white/10 pb-10 text-center md:text-left">
+          <div className="inline-flex items-center gap-3 bg-violet-500/10 text-violet-400 px-4 py-2 rounded-xl border border-violet-500/20 mb-6 backdrop-blur-md">
+            <Target className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] mono">Diagnostic Scan</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4 drop-shadow-md">
+            Baseline <span className="bg-gradient-to-r from-cyan-400 to-violet-600 bg-clip-text text-transparent italic">Calibration.</span>
+          </h2>
+          <p className="text-slate-400 text-lg font-medium max-w-2xl">
+            To generate your precise execution plan for <strong className="text-white">{profile.title}</strong>, we need to know what you already bring to the table.
+          </p>
+        </div>
 
-            <div className="flex flex-wrap gap-4 justify-center mb-12">
-              {fallbackSkills.map((skill, idx) => {
-                const isSelected = selectedSkills.includes(skill.name);
-                return (
-                  <motion.button
-                    key={idx}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => toggleSkill(skill.name)}
-                    className={`px-6 py-4 rounded-2xl font-bold transition-all border ${
-                      isSelected 
-                        ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
-                        : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {isSelected ? <CheckCircle2 className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border border-slate-500" />}
-                      {skill.name}
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            <button 
-              onClick={handleAnalyze}
-              className="w-full max-w-md mx-auto block bg-white text-black py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-cyan-400 hover:text-white transition-all shadow-xl"
-            >
-              Analyze Skill Gap
-            </button>
-          </motion.div>
-
-        ) : (
-
-          <motion.div 
-            key="report"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-8"
-          >
-            {/* Top Metric Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="glass-card p-8 rounded-[32px] border border-cyan-500/30 bg-cyan-500/5 relative overflow-hidden">
-                 <Target className="absolute -right-4 -bottom-4 w-32 h-32 text-cyan-500/10" />
-                 <div className="text-[10px] text-cyan-400 font-black uppercase tracking-widest mb-2 mono">Career Readiness</div>
-                 <div className="text-5xl font-black text-white">
-                   {Math.round((report!.matchedSkills.length / fallbackSkills.length) * 100)}%
-                 </div>
-              </div>
-              <div className="glass-card p-8 rounded-[32px] border border-rose-500/30 bg-rose-500/5 md:col-span-2 flex items-center justify-between">
-                 <div>
-                    <div className="text-[10px] text-rose-400 font-black uppercase tracking-widest mb-2 mono">Estimated Time to Employability</div>
-                    <div className="text-5xl font-black text-white flex items-baseline gap-2">
-                      {report?.totalWeeksToClose} <span className="text-2xl text-slate-400">Weeks</span>
-                    </div>
-                 </div>
-                 <Clock className="w-16 h-16 text-rose-500/50" />
-              </div>
-            </div>
-
-            {/* The Gap Columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* SKILL CHECKLIST */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <Zap className="w-5 h-5 text-cyan-400" />
+            <h3 className="text-xl font-bold text-white uppercase tracking-widest">Select Existing Competencies</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {profile.requiredSkills.map((skill, idx) => {
+              const isSelected = selectedSkills.includes(skill.name);
               
-              {/* Column 1: Critical Gaps */}
-              <div className="glass-card p-8 rounded-[32px] border border-white/10">
-                <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
-                  <AlertOctagon className="w-5 h-5 text-rose-500" /> Critical Gaps
-                </h3>
-                {report?.criticalGaps.length === 0 ? (
-                  <p className="text-slate-500 text-sm font-medium">No critical gaps. Excellent foundation.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {report?.criticalGaps.map((skill, i) => (
-                      <div key={i} className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl flex justify-between items-center">
-                        <span className="text-rose-200 font-bold text-sm">{skill.name}</span>
-                        <span className="text-xs text-rose-400 font-bold mono bg-rose-500/20 px-2 py-1 rounded-md">{skill.estimatedWeeksToLearn}w</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              // Color code the importance badges
+              const badgeColor = 
+                skill.importance === 'Critical' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                skill.importance === 'Important' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                'bg-slate-500/10 text-slate-400 border-slate-500/20';
 
-              {/* Column 2: Important Gaps */}
-              <div className="glass-card p-8 rounded-[32px] border border-white/10">
-                <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
-                  <AlertTriangle className="w-5 h-5 text-amber-500" /> Important
-                </h3>
-                {report?.importantGaps.length === 0 ? (
-                  <p className="text-slate-500 text-sm font-medium">All important skills verified.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {report?.importantGaps.map((skill, i) => (
-                      <div key={i} className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex justify-between items-center">
-                        <span className="text-amber-200 font-bold text-sm">{skill.name}</span>
-                        <span className="text-xs text-amber-400 font-bold mono bg-amber-500/20 px-2 py-1 rounded-md">{skill.estimatedWeeksToLearn}w</span>
-                      </div>
-                    ))}
+              return (
+                <motion.button
+                  key={idx}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => toggleSkill(skill.name)}
+                  className={`relative p-5 rounded-2xl text-left border transition-all duration-300 flex items-center justify-between group
+                    ${isSelected 
+                      ? 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
+                      : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-cyan-500/30'
+                    }
+                  `}
+                >
+                  <div className="flex flex-col gap-2">
+                    <span className={`text-lg font-bold transition-colors ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
+                      {skill.name}
+                    </span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border w-fit ${badgeColor}`}>
+                      {skill.importance}
+                    </span>
                   </div>
-                )}
-              </div>
 
-              {/* Column 3: Matched / Baseline */}
-              <div className="glass-card p-8 rounded-[32px] border border-white/10">
-                <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Current Arsenal
-                </h3>
-                {report?.matchedSkills.length === 0 ? (
-                  <p className="text-slate-500 text-sm font-medium">Starting from scratch. That's okay!</p>
-                ) : (
-                  <div className="space-y-4">
-                    {report?.matchedSkills.map((skill, i) => (
-                      <div key={i} className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex justify-between items-center opacity-70">
-                        <span className="text-emerald-200 font-bold text-sm">{skill.name}</span>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      </div>
-                    ))}
+                  {/* The Checkbox Icon */}
+                  <div className="shrink-0 ml-4">
+                    {isSelected ? (
+                      <CheckCircle2 className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                    ) : (
+                      <Circle className="w-8 h-8 text-slate-600 group-hover:text-cyan-500/50 transition-colors" />
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
 
-            {/* Action Trigger for 90-Day Plan */}
-            <div className="pt-8 flex justify-end">
-              <button 
-                onClick={() => onGeneratePlan(report!)}
-                className="bg-gradient-to-r from-cyan-500 to-violet-600 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition-all shadow-xl flex items-center gap-3"
-              >
-                Generate 90-Day Plan <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+        {/* ACTION FOOTER */}
+        <div className="bg-[#020617]/80 p-6 rounded-3xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
+          <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mono">
+            <Activity className="w-4 h-4 animate-pulse text-cyan-500" /> 
+            <span>{selectedSkills.length} Skills Verified</span>
+          </div>
+
+          <button
+            onClick={handleAnalyze}
+            className="w-full md:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-[1.02] active:scale-95 text-white font-black text-sm py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.4)] flex items-center justify-center gap-3 uppercase tracking-widest"
+          >
+            Compute Skill Gap <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+
+      </div>
+    </motion.div>
   );
 };
 
