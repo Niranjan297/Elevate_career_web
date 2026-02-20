@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckCircle2, Rocket, Calendar, Code, Trophy, Sparkles, ArrowRight } from 'lucide-react';
+import { Target, CheckCircle2, Rocket, Calendar, Code, Trophy, Sparkles, ArrowRight, Download, Search } from 'lucide-react';
 import { SkillGapReport } from './types';
 
 // --- FIREBASE IMPORTS ---
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+
+// --- PDF IMPORTS ---
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface ExecutionPlanProps {
   report: SkillGapReport;
@@ -13,12 +17,14 @@ interface ExecutionPlanProps {
 
 const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
   
-  // Initialize Firebase instances
+  // Create a reference to the main container we want to turn into a PDF
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
   const auth = getAuth();
   const db = getFirestore();
 
-  // 1. CLOUD RETRIEVAL: Load Saved Progress on Mount
   useEffect(() => {
     const loadProgress = async () => {
       const user = auth.currentUser;
@@ -26,10 +32,8 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
 
       if (user) {
         try {
-          // Check the cloud first
           const userRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(userRef);
-          
           if (docSnap.exists() && docSnap.data().executionPlans?.[report.career]) {
             setCompletedTasks(docSnap.data().executionPlans[report.career]);
             return;
@@ -39,46 +43,79 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
         }
       }
 
-      // Fallback to LocalStorage if offline or no cloud data
       const saved = localStorage.getItem(localKey);
-      if (saved) {
-        setCompletedTasks(JSON.parse(saved));
-      }
+      if (saved) setCompletedTasks(JSON.parse(saved));
     };
 
     loadProgress();
   }, [report.career]);
 
-  // 2. CLOUD SYNC: Toggle Task and Auto-Save
   const toggleTask = async (taskName: string) => {
     let updatedTasks: string[] = [];
     
     setCompletedTasks(prev => {
-      updatedTasks = prev.includes(taskName) 
-        ? prev.filter(t => t !== taskName) 
-        : [...prev, taskName];
+      updatedTasks = prev.includes(taskName) ? prev.filter(t => t !== taskName) : [...prev, taskName];
       return updatedTasks;
     });
 
     const localKey = `pathmind_execution_${report.career.replace(/\s+/g, '_')}`;
-    localStorage.setItem(localKey, JSON.stringify(updatedTasks)); // Keep local backup
+    localStorage.setItem(localKey, JSON.stringify(updatedTasks)); 
 
-    // Push instantly to Firebase Cloud
     if (auth.currentUser) {
       try {
         const userRef = doc(db, "users", auth.currentUser.uid);
-        await setDoc(userRef, {
-          executionPlans: {
-            [report.career]: updatedTasks
-          }
-        }, { merge: true }); // Merge ensures we don't delete their other data!
+        await setDoc(userRef, { executionPlans: { [report.career]: updatedTasks } }, { merge: true });
       } catch (error) {
         console.error("Error saving progress to cloud:", error);
       }
     }
   };
 
-  // Combine Optional Skills with the hardcoded Launch tasks
+  /**
+   * --- 🚀 NEW PDF EXPORT FUNCTION ---
+   */
+  const handleExportPDF = async () => {
+    const element = dashboardRef.current;
+    if (!element) return;
+
+    setIsExporting(true);
+
+    try {
+      // 1. Take a high-quality screenshot of the dashboard
+      const canvas = await html2canvas(element, {
+        scale: 2, // Doubles the resolution for crystal clear text
+        useCORS: true, // Allows external images/fonts to load
+        backgroundColor: '#020617' // Ensures the dark theme background stays intact
+      });
+
+      // 2. Convert it to a PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait, Millimeters, A4 size
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      // 3. Trigger the automatic download
+      pdf.save(`PathMind_${report.career.replace(/\s+/g, '_')}_Plan.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  /**
+   * --- 🚀 NEW JOB SEARCH FUNCTION ---
+   */
+  const handleFindJobs = () => {
+    // Format the query to specifically look for entry level roles in their exact matched career
+    const query = encodeURIComponent(`Junior ${report.career}`);
+    // Open LinkedIn Jobs in a new tab with the exact search parameters
+    window.open(`https://www.linkedin.com/jobs/search/?keywords=${query}`, '_blank');
+  };
+
   const launchTasks = [
     ...report.optionalGaps.map(skill => skill.name),
     'Build 2 Capstone Projects', 
@@ -95,10 +132,11 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
   const isComplete = calculateProgress() === 100;
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000 relative z-20">
+    // 👇 Notice the ref added here! This tells the PDF generator exactly what to capture.
+    <div ref={dashboardRef} className="w-full max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000 relative z-20 p-4">
       
       {/* --- HEADER --- */}
-      <div className="text-center max-w-3xl mx-auto mb-16 pt-10">
+      <div className="text-center max-w-3xl mx-auto mb-16 pt-6">
         <div className="inline-flex items-center gap-2 bg-violet-500/10 text-violet-400 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border border-violet-500/20 mb-6 mono backdrop-blur-md">
           <Target className="w-4 h-4" /> Tactical Deployment
         </div>
@@ -147,11 +185,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           
           <div className="space-y-4 relative z-10">
             {report.criticalGaps.length > 0 ? report.criticalGaps.map((skill, i) => (
-              <div 
-                key={i} 
-                onClick={() => toggleTask(skill.name)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(skill.name) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-rose-500/30'}`}
-              >
+              <div key={i} onClick={() => toggleTask(skill.name)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(skill.name) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-rose-500/30'}`}>
                 <div className="mt-1">{completedTasks.includes(skill.name) ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <div className="w-5 h-5 rounded-full border border-slate-600 transition-colors group-hover:border-rose-500" />}</div>
                 <div>
                   <div className={`font-bold text-sm ${completedTasks.includes(skill.name) ? 'text-emerald-400 line-through' : 'text-white'}`}>{skill.name}</div>
@@ -159,9 +193,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
                 </div>
               </div>
             )) : (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5" /> Foundation already mastered!
-              </div>
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-3"><CheckCircle2 className="w-5 h-5" /> Foundation already mastered!</div>
             )}
           </div>
         </div>
@@ -174,11 +206,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           
           <div className="space-y-4 relative z-10">
             {report.importantGaps.length > 0 ? report.importantGaps.map((skill, i) => (
-              <div 
-                key={i} 
-                onClick={() => toggleTask(skill.name)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(skill.name) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-amber-500/30'}`}
-              >
+              <div key={i} onClick={() => toggleTask(skill.name)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(skill.name) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-amber-500/30'}`}>
                 <div className="mt-1">{completedTasks.includes(skill.name) ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <div className="w-5 h-5 rounded-full border border-slate-600" />}</div>
                 <div>
                   <div className={`font-bold text-sm ${completedTasks.includes(skill.name) ? 'text-emerald-400 line-through' : 'text-white'}`}>{skill.name}</div>
@@ -186,9 +214,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
                 </div>
               </div>
             )) : (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5" /> Core skills verified!
-              </div>
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-3"><CheckCircle2 className="w-5 h-5" /> Core skills verified!</div>
             )}
           </div>
         </div>
@@ -201,11 +227,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           
           <div className="space-y-4 relative z-10">
             {launchTasks.map((task, i) => (
-              <div 
-                key={i} 
-                onClick={() => toggleTask(task)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(task) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-cyan-500/30'}`}
-              >
+              <div key={i} onClick={() => toggleTask(task)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(task) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-cyan-500/30'}`}>
                 <div className="mt-1 shrink-0">{completedTasks.includes(task) ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <div className="w-5 h-5 rounded-full border border-slate-600" />}</div>
                 <div className={`font-bold text-sm leading-snug ${completedTasks.includes(task) ? 'text-emerald-400 line-through' : 'text-white'}`}>{task}</div>
               </div>
@@ -214,7 +236,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
         </div>
       </div>
 
-      {/* --- SUCCESS REWARD STATE --- */}
+      {/* --- SUCCESS REWARD STATE (Now fully functional!) --- */}
       <AnimatePresence>
         {isComplete && (
           <motion.div 
@@ -222,7 +244,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.6, type: 'spring', bounce: 0.4 }}
-            className="mt-12 overflow-hidden"
+            className="mt-12 overflow-hidden pdf-exclude" // This class could be used to hide things from PDF if needed
           >
             <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border border-emerald-500/30 p-10 rounded-[40px] text-center relative backdrop-blur-xl shadow-[0_0_50px_rgba(16,185,129,0.2)]">
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#020617] p-4 rounded-full border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
@@ -238,11 +260,21 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
-                  Export Plan to PDF <ArrowRight className="w-4 h-4" />
+                {/* 1. PDF EXPORT BUTTON */}
+                <button 
+                  onClick={handleExportPDF}
+                  disabled={isExporting}
+                  className={`bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.4)] ${isExporting ? 'opacity-70' : 'hover:scale-[1.02] active:scale-95'}`}
+                >
+                  {isExporting ? 'Generating PDF...' : <><Download className="w-4 h-4" /> Export Plan to PDF</>}
                 </button>
-                <button className="bg-[#020617]/50 text-white border border-white/10 px-8 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all flex items-center justify-center gap-2 backdrop-blur-md">
-                  Find Entry-Level Jobs
+
+                {/* 2. LIVE JOB SEARCH BUTTON */}
+                <button 
+                  onClick={handleFindJobs}
+                  className="bg-[#020617]/50 text-white border border-white/10 px-8 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all flex items-center justify-center gap-2 backdrop-blur-md hover:border-cyan-500/50"
+                >
+                  <Search className="w-4 h-4 text-cyan-400" /> Find Entry-Level Jobs
                 </button>
               </div>
             </div>
