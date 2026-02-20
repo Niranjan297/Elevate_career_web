@@ -111,10 +111,10 @@ export interface SkillRequirement {
 // --- FINAL PROFILE STRUCTURE ---
 export interface CareerProfile {
   title: string;
-  archetype: Archetype; // The Core Persona
-  stream: CareerStream;
-  branch: CareerBranch;
   description: string;
+  stream: string;
+  branch: string;
+  personalityFit: string;
   
   // Power Features (Intelligence)
   salaryRange: string;
@@ -122,11 +122,18 @@ export interface CareerProfile {
   aiAutomationRisk: 'Low' | 'Medium' | 'High';
   marketDemand: 'Stable' | 'Growing' | 'Future-Proof' | 'Competitive';
 
+  // Match Engine Results
   matchScore: number;
   matchReason: string[]; // The "Why?" Engine
-  roadmap: string[];
   
-  // NEW: Skill Requirements
+  // The Upgraded Tactical Roadmap
+  roadmap: Array<{
+    title: string;
+    description: string;
+    timeframe: string;
+  }>;
+  
+  // Skill Requirements
   requiredSkills: SkillRequirement[]; // The standard to measure against
 }
 
@@ -138,4 +145,14 @@ export interface SkillGapReport {
   importantGaps: SkillRequirement[];
   optionalGaps: SkillRequirement[];
   totalWeeksToClose: number; // The timeline to become employable
+}
+
+// --- USER TYPE FOR AUTHENTICATION ---
+export type ViewState = 'landing' | 'assessment' | 'results' | 'learning-hub' | 'trends' | 'skill-gap' | 'execution-plan' | 'login';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  photoURL: string;
 }

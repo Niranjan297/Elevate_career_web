@@ -178,13 +178,18 @@ const LandingPage: React.FC<{ onStart: () => void; onExplore: () => void }> = ({
   );
 };
 
-// --- RESULTS DASHBOARD ---
+// --- RESULTS DASHBOARD (TABBED UI UPGRADE) ---
 const ResultsDashboard: React.FC<{ profile: CareerProfile, setView: (v: ViewState) => void }> = ({ profile, setView }) => {
+  // New State to manage which tab is visible
+  const [activeTab, setActiveTab] = useState<'overview' | 'roadmap' | 'intel'>('overview');
+
   return (
-    <div className="pt-10 pb-20 space-y-24 text-left animate-in fade-in slide-in-from-bottom-10 duration-1000 relative z-10">
-      <div className="flex flex-col lg:flex-row justify-between items-end gap-16">
-        <div className="max-w-4xl">
-          <div className="flex items-center gap-4 mb-6">
+    <div className="pt-10 pb-20 space-y-10 text-left animate-in fade-in slide-in-from-bottom-10 duration-1000 relative z-10 max-w-6xl mx-auto">
+      
+      {/* 1. COMPACT HERO SECTION (Always Visible) */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-10">
+        <div>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className="bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.3em] border border-cyan-500/30 backdrop-blur-md mono">
               Stream: {profile.stream}
             </span>
@@ -193,119 +198,178 @@ const ResultsDashboard: React.FC<{ profile: CareerProfile, setView: (v: ViewStat
             </span>
           </div>
           
-          <h1 className="text-7xl md:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-8 drop-shadow-lg">
-            <span className="text-slate-500 text-4xl block mb-2 tracking-normal font-bold">Optimal Designation:</span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.9] tracking-tighter mb-4 drop-shadow-lg">
             <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-600 bg-clip-text text-transparent italic">{profile.title}</span>
           </h1>
           
-          <p className="text-2xl text-slate-300 leading-relaxed font-medium mb-10 max-w-2xl border-l-4 border-cyan-500 pl-6 bg-[#020617]/40 backdrop-blur-sm p-4 rounded-r-2xl">
+          <p className="text-lg text-slate-300 font-medium max-w-2xl bg-[#020617]/40 backdrop-blur-sm p-4 rounded-xl border-l-2 border-cyan-500">
             {profile.description}
           </p>
-
-          <div className="flex flex-wrap gap-4">
-             <div className="flex items-center gap-3 bg-[#020617]/60 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10">
-                <UserIcon className="w-5 h-5 text-cyan-400" />
-                <div>
-                   <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Personality Fit</div>
-                   <div className="text-white font-bold">{profile.personalityFit}</div>
-                </div>
-             </div>
-             <div className="flex items-center gap-3 bg-[#020617]/60 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10">
-                <Target className="w-5 h-5 text-violet-400" />
-                <div>
-                   <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Confidence</div>
-                   <div className="text-white font-bold">{profile.matchScore}% Verified</div>
-                </div>
-             </div>
-          </div>
         </div>
-        
-        <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-12 rounded-[48px] text-center border-2 border-cyan-500/40 min-w-[300px] relative overflow-hidden group shadow-[0_0_50px_rgba(6,182,212,0.15)]">
-           <div className="absolute inset-0 bg-cyan-500/10 blur-[50px] animate-pulse" />
-           <div className="text-[8rem] font-black text-white mb-0 leading-none tracking-tighter relative z-10 drop-shadow-2xl">
-             {profile.matchScore}
+
+        {/* Match Score Badge */}
+        <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-6 rounded-[32px] text-center border border-cyan-500/30 min-w-[160px] shadow-[0_0_30px_rgba(6,182,212,0.15)] shrink-0">
+           <div className="text-5xl font-black text-white tracking-tighter drop-shadow-md">
+             {profile.matchScore}<span className="text-2xl text-cyan-500">%</span>
            </div>
-           <p className="text-sm font-black text-cyan-400 uppercase tracking-[0.4em] mono relative z-10 mt-4">
+           <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em] mono mt-2">
              Match Index
            </p>
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-8 glass-card bg-[#020617]/60 backdrop-blur-xl p-12 md:p-16 rounded-[64px] border border-white/10">
-          <div className="flex justify-between items-center mb-16">
-            <h3 className="text-3xl font-black text-white flex items-center gap-6 uppercase tracking-tight">
-              <Map className="text-cyan-400 w-8 h-8" /> 
-              Strategic Roadmap
-            </h3>
-            <span className="text-[10px] font-black text-slate-500 mono uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full border border-white/10">
-              Execution Plan
-            </span>
-          </div>
 
-          <div className="space-y-8 relative">
-            <div className="absolute left-6 top-4 bottom-4 w-0.5 bg-gradient-to-b from-cyan-500/50 to-violet-600/10" />
-            {profile.roadmap.map((step, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.2 }}
-                className="relative pl-20"
-              >
-                <div className="absolute left-0 top-0 w-12 h-12 bg-[#020617] border-2 border-cyan-500/50 rounded-full flex items-center justify-center z-10 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                  <span className="text-cyan-400 font-bold text-sm">{i + 1}</span>
-                </div>
-                <div className="bg-white/5 p-8 rounded-3xl border border-white/5 hover:border-cyan-500/30 hover:bg-white/10 transition-all backdrop-blur-md">
-                  <h4 className="text-xl font-bold text-white mb-2">{step}</h4>
-                  <p className="text-slate-400 text-sm">Recommended milestone for this trajectory.</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+      {/* 2. THE TAB NAVIGATION */}
+      <div className="flex items-center gap-2 bg-[#020617]/50 p-2 rounded-2xl border border-white/10 backdrop-blur-md w-fit overflow-x-auto max-w-full">
+        {['overview', 'roadmap', 'intel'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as any)}
+            className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+              activeTab === tab 
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {tab === 'intel' ? 'Intelligence' : tab}
+          </button>
+        ))}
+      </div>
 
-        <div className="lg:col-span-4 space-y-6">
-           <div className="glass-card bg-[#020617]/80 backdrop-blur-xl p-10 rounded-[48px] border border-white/10 shadow-2xl">
-              <h4 className="text-xl font-black text-white mb-6 uppercase italic flex items-center gap-3">
-                <Layers className="text-violet-400 w-5 h-5"/> Next Steps
-              </h4>
+      {/* 3. DYNAMIC CONTENT AREA */}
+      <div className="min-h-[500px]">
+        <AnimatePresence mode="wait">
+          
+          {/* --- TAB 1: OVERVIEW --- */}
+          {activeTab === 'overview' && (
+            <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-12 gap-8">
               
-              <button 
-                onClick={() => setView('learning-hub')} 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-cyan-500/20 transition-all mb-4 flex items-center justify-center gap-3"
-              >
-                <Youtube className="w-5 h-5" /> Access Learning Hub
-              </button>
+              {/* Left Column: Why they matched */}
+              <div className="md:col-span-7 space-y-6">
+                <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-8 rounded-[40px] border border-white/10 shadow-lg">
+                  <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-6 mono">Profile Breakdown</h4>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white/5 p-4 rounded-2xl flex items-center justify-between border border-white/5">
+                      <span className="text-slate-400 text-sm font-medium">Personality Archetype</span>
+                      <span className="text-white font-bold text-sm bg-violet-500/20 text-violet-300 px-3 py-1 rounded-lg">{profile.personalityFit || "Analytical"}</span>
+                    </div>
+                    
+                    {/* Render the reasons from our Logic engine */}
+                    {profile.matchReason && profile.matchReason.map((reason, idx) => (
+                      <div key={idx} className="flex gap-4 items-start bg-white/5 p-5 rounded-2xl border border-white/5">
+                        <Target className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                        <span className="text-sm text-slate-300 leading-relaxed font-medium">{reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-              <button 
-                onClick={() => setView('skill-gap')} 
-                className="w-full bg-white/5 border border-white/10 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 hover:border-cyan-500/30 transition-all mb-4"
-              >
-                Analyze Skill Gaps
-              </button>
+              {/* Right Column: Action Center */}
+              <div className="md:col-span-5">
+                <div className="glass-card bg-gradient-to-br from-[#020617]/90 to-[#0f172a]/90 backdrop-blur-xl p-8 rounded-[40px] border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.1)] h-full flex flex-col justify-center">
+                  <h4 className="text-xl font-black text-white mb-6 uppercase italic flex items-center gap-3">
+                    <Layers className="text-cyan-400 w-5 h-5"/> Action Center
+                  </h4>
+                  <div className="space-y-4">
+                    <button onClick={() => setView('learning-hub')} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                      <Youtube className="w-4 h-4" /> Access Learning Hub
+                    </button>
+                    <button onClick={() => setView('skill-gap')} className="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
+                      Analyze Skill Gaps
+                    </button>
+                    <button onClick={() => setView('trends')} className="w-full bg-transparent border border-white/10 text-slate-400 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all">
+                      Live Market Data
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-              <button 
-                onClick={() => setView('trends')} 
-                className="w-full bg-white text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-200 transition-all mb-4"
-              >
-                Explore Market Data
-              </button>
+          {/* --- TAB 2: ROADMAP --- */}
+          {activeTab === 'roadmap' && (
+            <motion.div key="roadmap" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+               <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-10 md:p-14 rounded-[40px] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
+                  <div className="flex justify-between items-center mb-12 border-b border-white/10 pb-8">
+                    <div>
+                      <h3 className="text-3xl font-black text-white flex items-center gap-4 uppercase tracking-tight mb-2">
+                        <Map className="text-cyan-400 w-8 h-8" /> 
+                        Tactical Roadmap
+                      </h3>
+                      <p className="text-slate-400 font-medium text-sm">Step-by-step execution protocol for your trajectory.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-12 relative">
+                    <div className="absolute left-6 top-4 bottom-4 w-0.5 bg-gradient-to-b from-cyan-500/50 via-violet-600/30 to-transparent" />
+                    {profile.roadmap.map((step, i) => {
+                      const isString = typeof step === 'string';
+                      const title = isString ? step : (step as any).title;
+                      const desc = isString ? "Focus on mastering the core fundamentals of this phase before advancing." : (step as any).description;
+                      const timeframe = isString ? `Phase 0${i + 1}` : (step as any).timeframe;
+
+                      return (
+                        <motion.div key={i} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="relative pl-20 group">
+                          <div className="absolute left-0 top-0 w-12 h-12 bg-[#020617] border-2 border-cyan-500/50 group-hover:border-cyan-400 rounded-full flex items-center justify-center z-10 transition-all duration-300">
+                            <span className="text-cyan-400 font-black text-sm">{i + 1}</span>
+                          </div>
+                          
+                          <div className="bg-white/5 p-8 rounded-3xl border border-white/5 hover:border-cyan-500/40 hover:bg-[#020617]/40 transition-all backdrop-blur-md">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                              <h4 className="text-xl md:text-2xl font-black text-white group-hover:text-cyan-400 transition-colors">{title}</h4>
+                              <span className="inline-block bg-[#020617] text-slate-400 text-[10px] font-black uppercase tracking-widest mono px-4 py-2 rounded-lg border border-white/10 shrink-0">
+                                ⏱ {timeframe}
+                              </span>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed mb-6">{desc}</p>
+                            <div className="bg-[#020617]/50 rounded-xl p-4 border border-white/5 flex items-start gap-3">
+                              <div className="w-5 h-5 rounded border border-slate-600 mt-0.5 shrink-0 flex items-center justify-center"></div>
+                              <span className="text-xs font-medium text-slate-300">
+                                <strong className="text-white">Objective:</strong> Complete all core learning modules associated with this phase.
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+               </div>
+            </motion.div>
+          )}
+
+          {/* --- TAB 3: INTELLIGENCE --- */}
+          {activeTab === 'intel' && (
+            <motion.div key="intel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               
-              <button 
-                onClick={() => setView('assessment')} 
-                className="w-full bg-transparent border border-rose-500/20 text-rose-400 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-rose-500/10 transition-all"
-              >
-                Retake Assessment
-              </button>
-           </div>
+              <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-8 md:p-10 rounded-[40px] border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+                <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-3 mono">Expected Compensation</div>
+                <div className="text-4xl font-black text-white">{profile.salaryRange || "₹8L - ₹15L"}</div>
+                <div className="text-slate-500 text-sm mt-2 font-medium">Average starting base pay</div>
+              </div>
 
-           <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-10 rounded-[48px] border border-white/10 flex flex-col items-center text-center">
-              <ShieldCheck className="w-12 h-12 text-emerald-400 mb-4 drop-shadow-[0_0_15px_rgba(52,211,153,0.4)]" />
-              <div className="text-lg font-bold text-white">AI Verified</div>
-              <div className="text-xs text-slate-500">Logic Core v4.2</div>
-           </div>
-        </div>
+              <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-8 md:p-10 rounded-[40px] border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.05)]">
+                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-3 mono">Market Demand</div>
+                <div className="text-4xl font-black text-white">{profile.marketDemand || "High Growth"}</div>
+                <div className="text-slate-500 text-sm mt-2 font-medium">Industry hiring trajectory</div>
+              </div>
+
+              <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-8 md:p-10 rounded-[40px] border border-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.05)]">
+                <div className="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-3 mono">AI Automation Risk</div>
+                <div className="text-4xl font-black text-white">{profile.aiAutomationRisk || "Low Risk"}</div>
+                <div className="text-slate-500 text-sm mt-2 font-medium">Requires high human intuition</div>
+              </div>
+
+              <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-8 md:p-10 rounded-[40px] border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.05)]">
+                <div className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-3 mono">Estimated Timeline</div>
+                <div className="text-4xl font-black text-white">{profile.timeline || "6-8 Months"}</div>
+                <div className="text-slate-500 text-sm mt-2 font-medium">To reach baseline employability</div>
+              </div>
+
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -396,6 +460,7 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void }> = ({ onLogin }) => {
       };
       onLogin(userObj);
     } catch (error) {
+      // Fallback for development if Firebase fails
       const dummy: User = { 
         id: 'dev-001', name: 'Lead Architect', email: 'architect@pathmind.ai', 
         photoURL: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Architect' 
@@ -452,20 +517,32 @@ export default function App() {
   const [careerProfile, setCareerProfile] = useState<CareerProfile | null>(null);
   const [gapReport, setGapReport] = useState<SkillGapReport | null>(null);
 
+  // 1. AUTO-SAVE: Whenever the careerProfile updates, lock it into LocalStorage
   useEffect(() => {
-    const saved = localStorage.getItem('pathmind_user');
-    if (saved) setUser(JSON.parse(saved));
-  }, []);
+    if (user && careerProfile) {
+      localStorage.setItem(`pathmind_profile_${user.id}`, JSON.stringify(careerProfile));
+    }
+  }, [user, careerProfile]);
 
+  // 2. AUTH LISTENER & AUTO-ROUTING
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser({
+        const loggedInUser = {
           id: currentUser.uid, name: currentUser.displayName || 'Explorer',
           email: currentUser.email || '', photoURL: currentUser.photoURL || ''
-        });
+        };
+        setUser(loggedInUser);
+
+        // SMART ROUTING: Does this user already have a profile saved?
+        const savedProfile = localStorage.getItem(`pathmind_profile_${currentUser.uid}`);
+        if (savedProfile) {
+          setCareerProfile(JSON.parse(savedProfile));
+          setView('results'); // BOOM. Skip the assessment!
+        }
       } else {
         setUser(null);
+        setCareerProfile(null); // Clear the active profile if they log out
       }
     });
     return () => unsubscribe();
@@ -490,10 +567,17 @@ export default function App() {
     }
   };
 
+  // 3. FALLBACK/DEV LOGIN ROUTING
   const handleLogin = (u: User) => {
     setUser(u);
-    localStorage.setItem('pathmind_user', JSON.stringify(u));
-    handleSetView('landing');
+    
+    const savedProfile = localStorage.getItem(`pathmind_profile_${u.id}`);
+    if (savedProfile) {
+      setCareerProfile(JSON.parse(savedProfile));
+      handleSetView('results');
+    } else {
+      handleSetView('assessment');
+    }
   };
 
   const handleLoginClick = async () => {
@@ -507,7 +591,7 @@ export default function App() {
   const handleLogout = async () => {
     try { await signOut(auth); } catch (e) {}
     setUser(null);
-    localStorage.removeItem('pathmind_user');
+    setCareerProfile(null);
     handleSetView('landing');
   };
 
@@ -515,20 +599,18 @@ export default function App() {
     setLoading(true);
     setTimeout(() => {
         const result = calculateCareerPath(answers);
-        setCareerProfile(result);
+        setCareerProfile(result); // This will automatically trigger the useEffect to save it!
         setLoading(false);
         handleSetView('results');
     }, 1500); 
   };
 
   return (
-    // 1. THE GLOBAL WRAPPER
+    // THE GLOBAL WRAPPER
     <div className="relative min-h-screen bg-[#020617] text-slate-100 overflow-x-hidden font-sans">
       
-      {/* 2. THE GLOBAL NEURAL GRID & PARTICLES */}
+      {/* THE GLOBAL NEURAL GRID & PARTICLES */}
       <div className="fixed inset-0 pointer-events-none z-0">
-         
-         {/* Deep Blueprint Grid */}
          <div 
            className="absolute inset-0 opacity-[0.05]" 
            style={{
@@ -536,19 +618,13 @@ export default function App() {
              backgroundSize: '50px 50px'
            }}
          />
-
-         {/* Animated Popping Particles */}
          <Particles />
-
-         {/* Ambient Neural Glows */}
          <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-cyan-500/10 blur-[150px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
          <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-violet-600/10 blur-[150px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '12s' }} />
-         
-         {/* Cinematic Noise */}
          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
       </div>
 
-      {/* 3. THE CONTENT LAYER */}
+      {/* THE CONTENT LAYER */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar user={user} onLogin={handleLoginClick} onLogout={handleLogout} />
         {view !== 'landing' && <BackButton onClick={handleGoBack} />}
@@ -565,11 +641,25 @@ export default function App() {
             ) : (
               <motion.div key={view} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} className="w-full h-full flex flex-col items-center justify-center">
                 
-                {view === 'landing' && <LandingPage onStart={() => handleSetView(user ? 'assessment' : 'login')} onExplore={() => handleSetView('trends')} />}
+                {/* SMART START BUTTON: Routes based on auth and saved profile */}
+                {view === 'landing' && (
+                  <LandingPage 
+                    onStart={() => {
+                      if (!user) {
+                        handleSetView('login');
+                      } else if (careerProfile) {
+                        handleSetView('results'); // Has profile -> Go to Results
+                      } else {
+                        handleSetView('assessment'); // No profile -> Go to Test
+                      }
+                    }} 
+                    onExplore={() => handleSetView('trends')} 
+                  />
+                )}
+                
                 {view === 'login' && <LoginPage onLogin={handleLogin} />}
                 {view === 'trends' && <MarketTrends />}
                 
-                {/* ASSESSMENT WRAPPER FIX: Removed solid backgrounds so the grid shows through */}
                 {view === 'assessment' && (
                   <div className="w-full max-w-5xl mx-auto px-6 relative z-20 py-10">
                       <AssessmentPage onComplete={handleAssessmentComplete} />

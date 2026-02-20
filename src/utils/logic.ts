@@ -39,7 +39,6 @@ export const calculateCareerPath = (userAnswers: Record<string, number>): Career
 
   // 3. REJECTION LOGIC (The "Safety Valve")
   // We filter out careers that fundamentally clash with the user's personality.
-  
   const riskScore = scores.traits[PersonalityTrait.RiskTaker] || 0;
   const stableScore = scores.traits[PersonalityTrait.Stable] || 0;
   const socialScore = scores.traits[PersonalityTrait.Social] || 0;
@@ -58,7 +57,6 @@ export const calculateCareerPath = (userAnswers: Record<string, number>): Career
   }
 
   // 4. Find Best Fit among valid profiles
-  // Formula: Stream + Branch (archetype removed to match current data model)
   let bestProfile = validProfiles[0];
   let maxScore = -Infinity;
 
@@ -93,13 +91,25 @@ export const calculateCareerPath = (userAnswers: Record<string, number>): Career
   }
 
   // 6. Calculate Confidence %
-  // Based on how "Dominant" the winner was compared to the total possible points
   const totalWeight = QUESTIONS.reduce((acc, q) => acc + ((q as any).weight || 1), 0);
-  // Normalize between 40-99 depending on dominance
   const normalizedScore = Math.min(Math.max(Math.round((maxScore / Math.max(1, totalWeight)) * 10) + 50, 40), 99);
+
+  // 7. SMART ADAPTER: Upgrade Roadmap Strings to Detailed Objects
+  // This ensures the new Tactical UI works flawlessly even if your database uses old strings
+  const detailedRoadmap = bestProfile.roadmap.map((step: any, index: number) => {
+    if (typeof step === 'string') {
+      return {
+        title: step,
+        description: `Dedicate specific focus to mastering the core fundamentals of ${step.toLowerCase()} before advancing to the next phase. Build practical projects to solidify this knowledge.`,
+        timeframe: `Months ${index * 2 + 1}-${index * 2 + 2}` // Automatically creates "Months 1-2", "Months 3-4", etc.
+      };
+    }
+    return step; // If it's already an object, leave it alone
+  });
 
   return {
     ...bestProfile,
+    roadmap: detailedRoadmap, // Inject the upgraded roadmap
     matchScore: normalizedScore,
     matchReason: reasons
   } as CareerProfile & { matchReason?: string[] };
@@ -143,6 +153,6 @@ export const analyzeSkillGap = (userSkills: string[], targetProfile: CareerProfi
     criticalGaps: critical,
     importantGaps: important,
     optionalGaps: optional,
-    totalWeeksToClose: totalWeeks // e.g., "Requires roughly 24 weeks to reach baseline employability"
+    totalWeeksToClose: totalWeeks
   };
 };
