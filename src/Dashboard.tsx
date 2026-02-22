@@ -23,12 +23,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user, careerProfile, gapReport, o
             {/* Sidebar */}
             <aside className="w-64 flex-shrink-0 border-r flex flex-col z-20" style={{ backgroundColor: bgDeep, borderColor: borderDark }}>
                 <div className="p-6 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded flex items-center justify-center text-white shadow-lg shadow-cyan-500/20" style={{ background: `linear-gradient(135deg, ${primaryCyan} 0%, ${primaryViolet} 100%)` }}>
-                        <span className="material-symbols-outlined !text-xl">cognition</span>
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-7 h-7">
+                            <div className="absolute inset-0 bg-blue-600 transform -skew-x-12 opacity-90"></div>
+                            <div className="absolute inset-0 flex justify-around px-0.5">
+                                {[...Array(6)].map((_, i) => (
+                                    <div key={i} className="w-[1px] h-full bg-[#020617] opacity-40"></div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="w-[3px] h-7 bg-blue-600 rounded-full"></div>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-black tracking-tight text-white uppercase italic">Elevate</span>
-                        <span className="text-[9px] uppercase tracking-widest font-black" style={{ color: primaryCyan }}>Intelligence v1.0</span>
+                        <span className="text-sm font-black tracking-tight text-[#8e24aa] uppercase">Elevate</span>
+                        <span className="text-[9px] uppercase tracking-widest font-black text-blue-500">Intelligence v1.0</span>
                     </div>
                 </div>
 
@@ -67,20 +75,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, careerProfile, gapReport, o
                     </div>
 
                     <div
-                        onClick={() => onViewChange('skill-gap')}
+                        onClick={() => onViewChange(gapReport ? 'execution-plan' : 'skill-gap')}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white hover:bg-white/5"
                     >
                         <span className="material-symbols-outlined !text-[20px]">unfold_more_double</span>
-                        <span className="text-xs font-bold uppercase tracking-widest">Skill Gap</span>
+                        <span className="text-xs font-bold uppercase tracking-widest">{gapReport ? 'Execution Plan' : 'Skill Gap'}</span>
                     </div>
 
-                    <div
-                        onClick={() => onViewChange('execution-plan')}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white hover:bg-white/5"
-                    >
-                        <span className="material-symbols-outlined !text-[20px]">calendar_today</span>
-                        <span className="text-xs font-bold uppercase tracking-widest">Execution Plan</span>
-                    </div>
 
                     <div
                         onClick={onLogout}
@@ -163,7 +164,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, careerProfile, gapReport, o
                         {[
                             { title: 'Career Report', icon: 'psychology', desc: 'Neural analysis of your trajectory.', view: 'career-report' },
                             { title: 'Market Intelligence', icon: 'trending_up', desc: 'Live market grounding data.', view: 'trends' },
-                            { title: 'Skill Gap DNA', icon: 'target', desc: 'Bridge technical growth areas.', view: 'skill-gap' },
+                            { title: 'Skill Gap DNA', icon: 'target', desc: 'Bridge technical growth areas.', view: gapReport ? 'execution-plan' : 'skill-gap' },
                             { title: 'Resume Builder', icon: 'description', desc: 'Generate ATS-optimized resume.', view: 'resume-builder' }
                         ].map((tile, i) => (
                             <motion.div

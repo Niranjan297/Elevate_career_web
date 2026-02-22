@@ -51,11 +51,20 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 
 const Navbar: React.FC<{ user: User | null, onLogin: () => void, onLogout: () => void }> = ({ user, onLogin, onLogout }) => (
   <nav className="fixed top-0 left-0 right-0 z-[100] p-4 md:p-6 flex justify-between items-center bg-gradient-to-b from-[#020617] via-[#020617]/80 to-transparent pointer-events-none">
-    <div className="flex items-center gap-2 pointer-events-auto">
-      <div className="bg-gradient-to-br from-cyan-500 to-violet-600 text-white font-black p-1.5 md:p-2 rounded-lg text-[10px] md:text-xs leading-none shadow-lg shadow-cyan-500/20">
-        01<br />10
+    <div className="flex items-center gap-3 md:gap-4 pointer-events-auto">
+      <div className="flex items-center gap-2">
+        <div className="relative w-8 h-8 md:w-10 md:h-10">
+          {/* Blue geometric shape with lines */}
+          <div className="absolute inset-0 bg-blue-600 transform -skew-x-12 opacity-90"></div>
+          <div className="absolute inset-0 flex justify-around px-1">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="w-0.5 h-full bg-[#020617] opacity-50"></div>
+            ))}
+          </div>
+        </div>
+        <div className="w-1 h-8 md:h-10 bg-blue-600 rounded-full mx-1"></div>
       </div>
-      <span className="text-white font-black text-lg md:text-xl tracking-tighter italic drop-shadow-md uppercase">Elevate</span>
+      <span className="text-[#8e24aa] font-black text-2xl md:text-3xl tracking-tight uppercase">Elevate</span>
     </div>
 
     <div className="pointer-events-auto">
@@ -396,10 +405,20 @@ const MarketTrends: React.FC<{ onBack: () => void, careerProfile: CareerProfile 
 const LoginPage: React.FC<{ onLogin: (isGuest?: boolean) => void }> = ({ onLogin }) => (
   <div className="w-full flex items-center justify-center py-20 px-4 md:px-6 relative z-10">
     <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="z-10 w-full max-w-xl glass-card p-10 md:p-20 rounded-[40px] md:rounded-[64px] border border-white/10 text-center backdrop-blur-2xl bg-[#020617]/60 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-      <div className="bg-gradient-to-br from-cyan-500 to-violet-600 w-24 h-24 md:w-32 md:h-32 rounded-3xl md:rounded-[40px] flex items-center justify-center mx-auto mb-10 md:mb-16 shadow-[0_0_40px_rgba(6,182,212,0.4)]">
-        <Terminal className="text-white w-12 h-12 md:w-16 md:h-16" />
+      <div className="flex flex-col items-center mb-10 md:mb-16">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="relative w-16 h-16 md:w-20 md:h-20">
+            <div className="absolute inset-0 bg-blue-600 transform -skew-x-12 opacity-90 shadow-lg"></div>
+            <div className="absolute inset-0 flex justify-around px-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="w-1 h-full bg-[#020617] opacity-40"></div>
+              ))}
+            </div>
+          </div>
+          <div className="w-1.5 h-16 md:h-20 bg-blue-600 rounded-full"></div>
+        </div>
+        <h1 className="text-5xl md:text-6xl font-black text-[#8e24aa] tracking-tight uppercase">Elevate</h1>
       </div>
-      <h1 className="text-4xl md:text-5xl font-black text-white mb-4 md:mb-6 tracking-tighter uppercase italic drop-shadow-lg">Elevate<span className="text-cyan-400 not-italic">AI</span></h1>
       <p className="text-slate-400 mb-10 md:mb-16 font-medium text-sm md:text-xl bg-white/5 p-4 rounded-2xl border border-white/5">Identity verification required for <br />Protocol Access.</p>
 
       <div className="flex flex-col gap-4">
@@ -418,6 +437,13 @@ const LoginPage: React.FC<{ onLogin: (isGuest?: boolean) => void }> = ({ onLogin
 // --- MAIN APP COMPONENT ---
 export default function App() {
   const [view, setView] = useState<ViewState>('landing');
+  const viewRef = React.useRef<ViewState>(view);
+
+  // Sync ref with state
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
   const [history, setHistory] = useState<ViewState[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -483,12 +509,12 @@ export default function App() {
               if (data.careerProfile) {
                 setCareerProfile(data.careerProfile);
                 // If they have a profile, dashboard is home
-                if (view === 'landing' || view === 'login') {
+                if (viewRef.current === 'landing' || viewRef.current === 'login') {
                   setView('dashboard');
                 }
               } else {
                 // If they log in but have NO profile, go straight to assessment
-                if (view === 'landing' || view === 'login') {
+                if (viewRef.current === 'landing' || viewRef.current === 'login') {
                   setView('assessment');
                 }
               }
@@ -497,7 +523,7 @@ export default function App() {
               }
             } else {
               // New user (no doc yet) -> go to assessment
-              if (view === 'landing' || view === 'login') {
+              if (viewRef.current === 'landing' || viewRef.current === 'login') {
                 setView('assessment');
               }
 
