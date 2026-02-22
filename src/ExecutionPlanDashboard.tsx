@@ -18,7 +18,7 @@ interface ExecutionPlanProps {
 const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  
+
   // Create a reference to the main container we want to turn into a PDF
   const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +28,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
   useEffect(() => {
     const loadProgress = async () => {
       const user = auth.currentUser;
-      const localKey = `pathmind_execution_${report.career.replace(/\s+/g, '_')}`;
+      const localKey = `elevate_execution_${report.career.replace(/\s+/g, '_')}`;
 
       if (user) {
         try {
@@ -52,14 +52,14 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
 
   const toggleTask = async (taskName: string) => {
     let updatedTasks: string[] = [];
-    
+
     setCompletedTasks(prev => {
       updatedTasks = prev.includes(taskName) ? prev.filter(t => t !== taskName) : [...prev, taskName];
       return updatedTasks;
     });
 
-    const localKey = `pathmind_execution_${report.career.replace(/\s+/g, '_')}`;
-    localStorage.setItem(localKey, JSON.stringify(updatedTasks)); 
+    const localKey = `elevate_execution_${report.career.replace(/\s+/g, '_')}`;
+    localStorage.setItem(localKey, JSON.stringify(updatedTasks));
 
     if (auth.currentUser) {
       try {
@@ -91,14 +91,14 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
       // 2. Convert it to a PDF
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait, Millimeters, A4 size
-      
+
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
+
       // 3. Trigger the automatic download
-      pdf.save(`PathMind_${report.career.replace(/\s+/g, '_')}_Plan.pdf`);
+      pdf.save(`Elevate_${report.career.replace(/\s+/g, '_')}_Plan.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -118,8 +118,8 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
 
   const launchTasks = [
     ...report.optionalGaps.map(skill => skill.name),
-    'Build 2 Capstone Projects', 
-    'Optimize LinkedIn Profile', 
+    'Build 2 Capstone Projects',
+    'Optimize LinkedIn Profile',
     'Apply to 10 Junior Roles/Internships'
   ];
 
@@ -134,14 +134,14 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
   return (
     // 👇 Notice the ref added here! This tells the PDF generator exactly what to capture.
     <div ref={dashboardRef} className="w-full max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000 relative z-20 p-4">
-      
+
       {/* --- HEADER --- */}
       <div className="text-center max-w-3xl mx-auto mb-16 pt-6">
         <div className="inline-flex items-center gap-2 bg-violet-500/10 text-violet-400 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border border-violet-500/20 mb-6 mono backdrop-blur-md">
           <Target className="w-4 h-4" /> Tactical Deployment
         </div>
         <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-tight drop-shadow-md">
-          Your 90-Day <br/>
+          Your 90-Day <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400 italic">
             Execution Protocol
           </span>
@@ -165,7 +165,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           </div>
         </div>
         <div className="h-4 bg-[#020617] border border-white/5 rounded-full overflow-hidden shadow-inner">
-          <motion.div 
+          <motion.div
             className={`h-full ${isComplete ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]' : 'bg-gradient-to-r from-cyan-500 to-violet-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]'}`}
             initial={{ width: 0 }}
             animate={{ width: `${calculateProgress()}%` }}
@@ -176,13 +176,13 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
 
       {/* --- THE 3 PHASES --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* PHASE 1: FOUNDATION */}
         <div className="glass-card bg-[#020617]/60 backdrop-blur-xl p-8 rounded-[32px] border border-rose-500/20 relative overflow-hidden group hover:border-rose-500/40 transition-all shadow-lg hover:shadow-[0_0_30px_rgba(244,63,94,0.1)]">
           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><Code className="w-32 h-32 text-rose-500" /></div>
           <div className="text-[10px] text-rose-400 font-black uppercase tracking-widest mb-2 mono">Month 1</div>
           <h3 className="text-2xl font-black text-white mb-6">Foundation</h3>
-          
+
           <div className="space-y-4 relative z-10">
             {report.criticalGaps.length > 0 ? report.criticalGaps.map((skill, i) => (
               <div key={i} onClick={() => toggleTask(skill.name)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(skill.name) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-rose-500/30'}`}>
@@ -203,7 +203,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><Calendar className="w-32 h-32 text-amber-500" /></div>
           <div className="text-[10px] text-amber-400 font-black uppercase tracking-widest mb-2 mono">Month 2</div>
           <h3 className="text-2xl font-black text-white mb-6">Core Skills</h3>
-          
+
           <div className="space-y-4 relative z-10">
             {report.importantGaps.length > 0 ? report.importantGaps.map((skill, i) => (
               <div key={i} onClick={() => toggleTask(skill.name)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(skill.name) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-amber-500/30'}`}>
@@ -224,7 +224,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><Rocket className="w-32 h-32 text-cyan-500" /></div>
           <div className="text-[10px] text-cyan-400 font-black uppercase tracking-widest mb-2 mono">Month 3</div>
           <h3 className="text-2xl font-black text-white mb-6">Launch</h3>
-          
+
           <div className="space-y-4 relative z-10">
             {launchTasks.map((task, i) => (
               <div key={i} onClick={() => toggleTask(task)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex gap-4 ${completedTasks.includes(task) ? 'bg-emerald-500/10 border-emerald-500/30 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-cyan-500/30'}`}>
@@ -239,7 +239,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
       {/* --- SUCCESS REWARD STATE (Now fully functional!) --- */}
       <AnimatePresence>
         {isComplete && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0, y: 20 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0 }}
@@ -250,18 +250,18 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#020617] p-4 rounded-full border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
                 <Trophy className="w-8 h-8 text-emerald-400" />
               </div>
-              
+
               <h3 className="text-4xl font-black text-white mb-4 mt-6 flex items-center justify-center gap-3 drop-shadow-md">
                 <Sparkles className="w-8 h-8 text-emerald-400" /> You Are Ready.
               </h3>
-              
+
               <p className="text-emerald-100/80 mb-10 max-w-2xl mx-auto font-medium text-lg leading-relaxed">
                 You have completely executed your 90-day trajectory. You are now prepared to enter the market as a highly competitive candidate in your field.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {/* 1. PDF EXPORT BUTTON */}
-                <button 
+                <button
                   onClick={handleExportPDF}
                   disabled={isExporting}
                   className={`bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.4)] ${isExporting ? 'opacity-70' : 'hover:scale-[1.02] active:scale-95'}`}
@@ -270,7 +270,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
                 </button>
 
                 {/* 2. LIVE JOB SEARCH BUTTON */}
-                <button 
+                <button
                   onClick={handleFindJobs}
                   className="bg-[#020617]/50 text-white border border-white/10 px-8 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all flex items-center justify-center gap-2 backdrop-blur-md hover:border-cyan-500/50"
                 >
@@ -281,7 +281,7 @@ const ExecutionPlanDashboard: React.FC<ExecutionPlanProps> = ({ report }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
     </div>
   );
 };

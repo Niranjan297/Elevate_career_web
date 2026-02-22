@@ -4,22 +4,23 @@ import { CareerBranch, CareerProfile, CareerStream, PersonalityTrait, SkillGapRe
 interface Scoreboard {
   streams: Record<string, number>;
   branches: Record<string, number>;
+  archetypes: Record<string, number>;
   traits: Record<string, number>;
 }
 
-export const calculateCareerPath = (userAnswers: Record<string, number>): CareerProfile => {
-  
+export const calculateCareerPath = (userAnswers: Record<string, number>): CareerProfile[] => {
+
   // 1. Initialize Scoreboard
   const scores: Scoreboard = {
     streams: {},
     branches: {},
+    archetypes: {},
     traits: {}
   };
 
   const addPoints = (target: Record<string, number>, incoming: Partial<Record<string, number>> | undefined, weight: number) => {
     if (!incoming) return;
     Object.entries(incoming).forEach(([key, value]) => {
-      // MULTIPLY BY WEIGHT (Confidence System)
       target[key] = (target[key] || 0) + (value * weight);
     });
   };
@@ -30,89 +31,80 @@ export const calculateCareerPath = (userAnswers: Record<string, number>): Career
     if (!question) return;
 
     const selectedOption = question.options[optionIndex];
-    const weight = (question as any).weight || 1; 
+    const weight = question.weight || 1;
 
     addPoints(scores.streams, selectedOption.scores.stream, weight);
     addPoints(scores.branches, selectedOption.scores.branch, weight);
     addPoints(scores.traits, selectedOption.scores.trait, weight);
+    addPoints(scores.archetypes, (selectedOption.scores as any).archetype, weight);
   });
 
-  // 3. REJECTION LOGIC (The "Safety Valve")
-  // We filter out careers that fundamentally clash with the user's personality.
-  const riskScore = scores.traits[PersonalityTrait.RiskTaker] || 0;
-  const stableScore = scores.traits[PersonalityTrait.Stable] || 0;
-  const socialScore = scores.traits[PersonalityTrait.Social] || 0;
-  const soloScore = scores.traits[PersonalityTrait.Solo] || 0;
+  const totalMaxScore = QUESTIONS.reduce((acc, q) => acc + (q.weight || 1) * 20, 0);
 
-  let validProfiles = CAREER_PROFILES;
+  // 3. Find Matches for ALL profiles
+  const allMatches = CAREER_PROFILES.map(profile => {
+    let rawScore = 0;
 
-  // Rule 1: If user HATES risk (Stable > Risk + 5), remove Business
-  if (stableScore > riskScore + 5) {
-    validProfiles = validProfiles.filter(p => p.stream !== CareerStream.Business);
-  }
+    // Vector 1: Stream Alignment (Weight: 1.0)
+    rawScore += (scores.streams[profile.stream] || 0);
 
-  // Rule 2: If user is extremely Solo (Solo > Social + 5), remove Hospitality/Sales
-  if (soloScore > socialScore + 5) {
-    validProfiles = validProfiles.filter(p => p.branch !== CareerBranch.Marketing);
-  }
+    // Vector 2: Branch Alignment (Weight: 1.2 - Higher specificity)
+    rawScore += (scores.branches[profile.branch] || 0) * 1.2;
 
-  // 4. Find Best Fit among valid profiles
-  let bestProfile = validProfiles[0];
-  let maxScore = -Infinity;
+    // Vector 3: Archetype Alignment (Weight: 1.5 - High psychological validity)
+    rawScore += (scores.archetypes[profile.personalityFit] || 0) * 1.5;
 
-  validProfiles.forEach(profile => {
-    let score = 0;
-    score += (scores.streams[profile.stream] || 0);
-    score += (scores.branches[profile.branch] || 0);
-
-    if (score > maxScore) {
-      maxScore = score;
-      bestProfile = profile;
+    // Vector 4: Trait Alignment (Weight: 0.8 - Complementary)
+    if (profile.traits) {
+      profile.traits.forEach(trait => {
+        rawScore += (scores.traits[trait] || 0) * 0.8;
+      });
     }
-  });
 
-  // 5. EXPLANATION ENGINE (Generate "Why?")
-  const reasons: string[] = [];
-  
-  // Role Reason
-  reasons.push(`Detected optimal role: "${bestProfile.title}" based on your responses.`);
+    // Calculate Confidence % using a sigmoid-like scaling
+    // We want a match of 0 points to be ~30% and a perfect match towards 99%
+    const normalizedScore = Math.min(Math.max(Math.round((rawScore / totalMaxScore) * 100), 40), 99);
 
-  // Trait Reason
-  const dominantTrait = Object.entries(scores.traits).sort(([,a], [,b]) => b - a)[0];
-  if (dominantTrait) {
-    reasons.push(`Your strongest trait is "${dominantTrait[0]}", a key skill for this career.`);
-  }
+    // Explanation Engine
+    const reasons: string[] = [];
+    const dominantTrait = Object.entries(scores.traits).sort(([, a], [, b]) => b - a)[0];
 
-  // Work Style Reason
-  if (scores.traits[PersonalityTrait.Solo] > scores.traits[PersonalityTrait.Social]) {
-    reasons.push("You prefer independent work with high focus.");
-  } else {
-    reasons.push("You thrive in collaborative, team-based environments.");
-  }
-
-  // 6. Calculate Confidence %
-  const totalWeight = QUESTIONS.reduce((acc, q) => acc + ((q as any).weight || 1), 0);
-  const normalizedScore = Math.min(Math.max(Math.round((maxScore / Math.max(1, totalWeight)) * 10) + 50, 40), 99);
-
-  // 7. SMART ADAPTER: Upgrade Roadmap Strings to Detailed Objects
-  // This ensures the new Tactical UI works flawlessly even if your database uses old strings
-  const detailedRoadmap = bestProfile.roadmap.map((step: any, index: number) => {
-    if (typeof step === 'string') {
-      return {
-        title: step,
-        description: `Dedicate specific focus to mastering the core fundamentals of ${step.toLowerCase()} before advancing to the next phase. Build practical projects to solidify this knowledge.`,
-        timeframe: `Months ${index * 2 + 1}-${index * 2 + 2}` // Automatically creates "Months 1-2", "Months 3-4", etc.
-      };
+    if (scores.archetypes[profile.personalityFit] > 15) {
+      reasons.push(`Perfectly aligns with your "${profile.personalityFit}" behavioral archetype.`);
     }
-    return step; // If it's already an object, leave it alone
+
+    if (dominantTrait && profile.traits?.includes(dominantTrait[0] as any)) {
+      reasons.push(`Matches your dominant strength in ${dominantTrait[0]}.`);
+    }
+
+    if (scores.streams[profile.stream] > 10) {
+      reasons.push(`Strong compatibility with your interest in ${profile.stream}.`);
+    }
+
+    // Roadmap Adapter
+    const detailedRoadmap = profile.roadmap.map((step: any, index: number) => {
+      if (typeof step === 'string') {
+        return {
+          title: step,
+          description: `Master the core fundamentals of ${step.toLowerCase()}.`,
+          timeframe: `Months ${index * 2 + 1}-${index * 2 + 2}`
+        };
+      }
+      return step;
+    });
+
+    return {
+      ...profile,
+      roadmap: detailedRoadmap,
+      matchScore: normalizedScore,
+      matchReason: reasons.slice(0, 3) // Keep top 3 reasons
+    } as CareerProfile;
   });
 
-  return {
-    ...bestProfile,
-    roadmap: detailedRoadmap, // Inject the upgraded roadmap
-    matchScore: normalizedScore,
-    matchReason: reasons
-  } as CareerProfile & { matchReason?: string[] };
+  // 4. Sort and return top 3
+  return allMatches
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 3);
 };
 
 export const analyzeSkillGap = (userSkills: string[], targetProfile: CareerProfile): SkillGapReport => {
@@ -120,7 +112,7 @@ export const analyzeSkillGap = (userSkills: string[], targetProfile: CareerProfi
   const critical: SkillRequirement[] = [];
   const important: SkillRequirement[] = [];
   const optional: SkillRequirement[] = [];
-  
+
   let totalWeeks = 0;
 
   // Normalize user skills for easy comparison (lowercase, trim)

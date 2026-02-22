@@ -31,7 +31,7 @@ export enum CareerBranch {
   Mech = 'Mechanical',
   Civil = 'Civil',
   Elec = 'Electronics',
-  
+
   // Medical/Humanities
   MBBS = 'Doctor (MBBS)',
   Psychology = 'Psychology',
@@ -48,12 +48,12 @@ export enum CareerBranch {
   Design = 'UI/UX & Graphics',
   Journalism = 'Journalism/Media',
   Film = 'Filmmaking',
-  
+
   // Service/Govt
   Hospitality = 'Hotel Management',
   CivilServices = 'UPSC/IAS',
   Defense = 'Defense/Army',
-  
+
   // Vocational
   Technician = 'Technician',
   Freelance = 'Digital Freelance'
@@ -115,7 +115,7 @@ export interface CareerProfile {
   stream: string;
   branch: string;
   personalityFit: string;
-  
+
   // Power Features (Intelligence)
   salaryRange: string;
   timeline: string;
@@ -125,16 +125,23 @@ export interface CareerProfile {
   // Match Engine Results
   matchScore: number;
   matchReason: string[]; // The "Why?" Engine
-  
+
   // The Upgraded Tactical Roadmap
   roadmap: Array<{
     title: string;
     description: string;
     timeframe: string;
   }>;
-  
+
   // Skill Requirements
   requiredSkills: SkillRequirement[]; // The standard to measure against
+
+  // Personality Traits (for deep matching)
+  traits?: PersonalityTrait[];
+
+  // External Resources
+  courses?: Array<{ title: string; provider: string; link: string; type: 'Free' | 'Paid' | 'Certified' }>;
+  externalResources?: Array<{ title: string; description: string; link: string }>;
 }
 
 // --- SKILL GAP ANALYSIS ---
@@ -148,7 +155,7 @@ export interface SkillGapReport {
 }
 
 // --- USER TYPE FOR AUTHENTICATION ---
-export type ViewState = 'landing' | 'assessment' | 'results' | 'learning-hub' | 'trends' | 'skill-gap' | 'execution-plan' | 'login';
+export type ViewState = 'landing' | 'dashboard' | 'assessment' | 'results' | 'learning-hub' | 'trends' | 'skill-gap' | 'execution-plan' | 'login' | 'resume-builder' | 'career-report';
 
 export interface User {
   id: string;

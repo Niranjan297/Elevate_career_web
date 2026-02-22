@@ -1,110 +1,8 @@
-import { 
-  Question, QuestionType, Archetype, CareerStream, 
-  CareerBranch, PersonalityTrait, CareerProfile 
+import {
+  Question, QuestionType, Archetype, CareerStream,
+  CareerBranch, PersonalityTrait, CareerProfile
 } from './types';
 
-/// --- THE ASSESSMENT ENGINE (Psychological & Habit-Based) ---
-export const QUESTIONS: Question[] = [
-  // --- BUCKET 1: NATURAL INSTINCTS ---
-  {
-    id: 'q1', text: 'You buy a complicated piece of IKEA furniture. What is your first move?', type: QuestionType.Personality, weight: 2,
-    options: [
-      { label: 'Read the manual cover-to-cover, organize the screws, and follow the steps.', scores: { trait: { [PersonalityTrait.Theoretical]: 10, [PersonalityTrait.Logical]: 5 }, stream: { [CareerStream.Engineering]: 5 } } },
-      { label: 'Throw the manual away, look at the picture on the box, and just start building.', scores: { trait: { [PersonalityTrait.HandsOn]: 10, [PersonalityTrait.RiskTaker]: 5 }, archetype: { [Archetype.TheBuilder]: 10 } } },
-      { label: 'Convince your friends or siblings to help you put it together.', scores: { trait: { [PersonalityTrait.Social]: 10 }, archetype: { [Archetype.TheLeader]: 5 }, stream: { [CareerStream.Business]: 5 } } },
-      { label: 'Modify the pieces to build something cooler than what’s on the box.', scores: { archetype: { [Archetype.TheCreator]: 10 }, stream: { [CareerStream.Creative]: 5 } } }
-    ]
-  },
-  {
-    id: 'q2', text: 'Think back to when you were 10 years old. What absorbed your attention the most?', type: QuestionType.Direction, weight: 3,
-    options: [
-      { label: 'Taking apart toys to see how they worked, or playing with Legos/puzzles.', scores: { stream: { [CareerStream.Engineering]: 10 }, branch: { [CareerBranch.Mech]: 5, [CareerBranch.CS]: 5 } } },
-      { label: 'Drawing, making up stories, or creating your own games.', scores: { stream: { [CareerStream.Creative]: 10 }, branch: { [CareerBranch.Design]: 10 } } },
-      { label: 'Trading cards, negotiating rules in games, or organizing the neighborhood kids.', scores: { stream: { [CareerStream.Business]: 10, [CareerStream.Commerce]: 5 }, archetype: { [Archetype.TheLeader]: 10 } } },
-      { label: 'Taking care of pets, helping younger kids, or acting as the peacemaker.', scores: { stream: { [CareerStream.Medical]: 10, [CareerStream.Humanities]: 5 }, archetype: { [Archetype.TheCaregiver]: 10 } } }
-    ]
-  },
-
-  // --- BUCKET 2: SOCIAL DYNAMICS ---
-  {
-    id: 'q3', text: 'Your friend group is planning a big road trip. What role do you naturally fall into?', type: QuestionType.Personality, weight: 2,
-    options: [
-      { label: 'The Navigator: I mapped out the exact route, the budget, and the schedule.', scores: { archetype: { [Archetype.TheAnalyst]: 10 }, trait: { [PersonalityTrait.Logical]: 10, [PersonalityTrait.Stable]: 5 } } },
-      { label: 'The Hype Person: I made the playlist, brought the energy, and kept everyone laughing.', scores: { stream: { [CareerStream.Creative]: 5 }, trait: { [PersonalityTrait.Social]: 10 } } },
-      { label: 'The Driver/Fixer: I just want to control the wheel and handle any flat tires.', scores: { archetype: { [Archetype.TheBuilder]: 10 }, trait: { [PersonalityTrait.Solo]: 5, [PersonalityTrait.HandsOn]: 10 } } },
-      { label: 'The Medic: I made sure everyone had snacks, water, and wasn’t getting carsick.', scores: { archetype: { [Archetype.TheCaregiver]: 10 }, trait: { [PersonalityTrait.Empathetic]: 10 } } }
-    ]
-  },
-  {
-    id: 'q4', text: 'You are in a heated argument. How do you usually win?', type: QuestionType.DeepDive, weight: 2,
-    options: [
-      { label: 'I use cold, hard facts and point out the logical flaws in their statement.', scores: { stream: { [CareerStream.Commerce]: 5, [CareerStream.Engineering]: 5 }, branch: { [CareerBranch.Law]: 10 } } },
-      { label: 'I appeal to their emotions and try to find a middle ground.', scores: { stream: { [CareerStream.Humanities]: 10 }, trait: { [PersonalityTrait.Empathetic]: 10 } } },
-      { label: 'I speak with absolute confidence and charisma until they back down.', scores: { stream: { [CareerStream.Business]: 10 }, branch: { [CareerBranch.Marketing]: 10 } } },
-      { label: 'I don’t argue. I just walk away and prove them wrong with my actions.', scores: { trait: { [PersonalityTrait.Solo]: 10, [PersonalityTrait.Stable]: 5 } } }
-    ]
-  },
-
-  // --- BUCKET 3: PROBLEM SOLVING ---
-  {
-    id: 'q5', text: 'You encounter a complex puzzle in a video game or an escape room. What goes through your mind?', type: QuestionType.DeepDive, weight: 3,
-    options: [
-      { label: '"Let me find the underlying pattern or mathematical rule here."', scores: { stream: { [CareerStream.Engineering]: 10 }, branch: { [CareerBranch.CS]: 10 }, trait: { [PersonalityTrait.Theoretical]: 5 } } },
-      { label: '"I will just try every possible combination until something clicks."', scores: { trait: { [PersonalityTrait.HandsOn]: 10, [PersonalityTrait.RiskTaker]: 5 } } },
-      { label: '"I am going to look at the visual clues and the design of the room for a hint."', scores: { stream: { [CareerStream.Creative]: 10 }, branch: { [CareerBranch.Design]: 10 } } },
-      { label: '"I will ask my teammates what they think and coordinate our efforts."', scores: { trait: { [PersonalityTrait.Social]: 10 }, archetype: { [Archetype.TheLeader]: 10 } } }
-    ]
-  },
-  {
-    id: 'q6', text: 'When you look at a highly successful company like Apple or Tesla, what fascinates you the most?', type: QuestionType.Direction, weight: 2,
-    options: [
-      { label: 'The groundbreaking technology and how the physical products actually work.', scores: { stream: { [CareerStream.Engineering]: 10 }, archetype: { [Archetype.TheBuilder]: 10 } } },
-      { label: 'The massive profit margins, stock valuation, and global market strategy.', scores: { stream: { [CareerStream.Commerce]: 10, [CareerStream.Business]: 10 }, branch: { [CareerBranch.Finance]: 10 } } },
-      { label: 'The sleek aesthetics, the branding, and how it makes people feel.', scores: { stream: { [CareerStream.Creative]: 10 }, branch: { [CareerBranch.Design]: 10, [CareerBranch.Marketing]: 5 } } },
-      { label: 'How they organize thousands of employees and manage a global supply chain.', scores: { archetype: { [Archetype.TheLeader]: 10, [Archetype.TheAnalyst]: 5 } } }
-    ]
-  },
-
-  // --- BUCKET 4: LIFESTYLE & MOTIVATION ---
-  {
-    id: 'q7', text: 'If money was not an issue, what would your ideal Tuesday look like?', type: QuestionType.Personality, weight: 2,
-    options: [
-      { label: 'Sitting quietly with a coffee, deeply focused on a personal project or hobby.', scores: { trait: { [PersonalityTrait.Solo]: 10, [PersonalityTrait.Stable]: 5 } } },
-      { label: 'Traveling to a new city, meeting strangers, and experiencing something unpredictable.', scores: { trait: { [PersonalityTrait.RiskTaker]: 10 }, archetype: { [Archetype.TheExplorer]: 10 } } },
-      { label: 'Volunteering at a shelter, helping a friend out, or giving advice.', scores: { archetype: { [Archetype.TheCaregiver]: 10 }, trait: { [PersonalityTrait.Empathetic]: 10 } } },
-      { label: 'Leading a team of passionate people to launch something massive.', scores: { archetype: { [Archetype.TheLeader]: 10 }, trait: { [PersonalityTrait.Social]: 10 } } }
-    ]
-  },
-  {
-    id: 'q8', text: 'How do you react to strict rules and heavy structure (like strict school schedules)?', type: QuestionType.Personality, weight: 2,
-    options: [
-      { label: 'I like it. It gives me a clear framework of what I need to do to succeed.', scores: { trait: { [PersonalityTrait.Stable]: 10, [PersonalityTrait.Logical]: 5 } } },
-      { label: 'I hate it. I feel suffocated and constantly want to break or bend the rules.', scores: { trait: { [PersonalityTrait.RiskTaker]: 10 }, archetype: { [Archetype.TheCreator]: 5 } } },
-      { label: 'I tolerate it, but I usually find a highly efficient loophole to do less work.', scores: { archetype: { [Archetype.TheAnalyst]: 10 }, trait: { [PersonalityTrait.Theoretical]: 5 } } },
-      { label: 'I ignore the rules completely if they don\'t make sense to me.', scores: { archetype: { [Archetype.TheLeader]: 5 }, trait: { [PersonalityTrait.HandsOn]: 5 } } }
-    ]
-  },
-
-  // --- BUCKET 5: THE ULTIMATE CHOICE ---
-  {
-    id: 'q9', text: 'Which of these sounds like the absolute worst nightmare job for you?', type: QuestionType.DeepDive, weight: 3,
-    options: [
-      { label: 'Doing the exact same repetitive data-entry task alone in a cubicle forever.', scores: { trait: { [PersonalityTrait.RiskTaker]: 10, [PersonalityTrait.Social]: 10 } } }, // Hates boredom/isolation
-      { label: 'Having to cold-call strangers and aggressively sell them things all day.', scores: { trait: { [PersonalityTrait.Solo]: 10, [PersonalityTrait.Empathetic]: 10 } } }, // Hates aggressive social interaction
-      { label: 'Being a manager who has to fire people and deal with endless office drama.', scores: { trait: { [PersonalityTrait.Logical]: 10, [PersonalityTrait.Theoretical]: 10 } } }, // Hates drama/managing emotions
-      { label: 'A job with zero creative freedom where you must follow orders blindly.', scores: { archetype: { [Archetype.TheCreator]: 10 }, stream: { [CareerStream.Creative]: 5 } } } // Hates lack of autonomy
-    ]
-  },
-  {
-    id: 'q10', text: 'Forget the job title. What is the actual impact you want to have on the world?', type: QuestionType.Direction, weight: 3,
-    options: [
-      { label: '"I want to invent or build systems that push humanity forward."', scores: { stream: { [CareerStream.Engineering]: 10 }, archetype: { [Archetype.TheBuilder]: 10 } } },
-      { label: '"I want to create wealth, build an empire, and have total financial freedom."', scores: { stream: { [CareerStream.Business]: 10, [CareerStream.Commerce]: 10 }, trait: { [PersonalityTrait.RiskTaker]: 5 } } },
-      { label: '"I want to leave behind art, stories, or designs that inspire people long after I’m gone."', scores: { stream: { [CareerStream.Creative]: 10 }, archetype: { [Archetype.TheCreator]: 10 } } },
-      { label: '"I want to directly heal, protect, or educate people who need help right now."', scores: { stream: { [CareerStream.Medical]: 10, [CareerStream.PublicService]: 10 }, archetype: { [Archetype.TheCaregiver]: 10 } } }
-    ]
-  }
-];
 // --- THE MASTER CAREER DATABASE (Multi-Industry) ---
 export const CAREER_PROFILES: CareerProfile[] = [
   // --- TECH & ENGINEERING ---
@@ -130,6 +28,17 @@ export const CAREER_PROFILES: CareerProfile[] = [
       { name: 'Python (Advanced)', importance: 'Critical', estimatedWeeksToLearn: 8 },
       { name: 'Linear Algebra & Calculus', importance: 'Critical', estimatedWeeksToLearn: 6 },
       { name: 'PyTorch / TensorFlow', importance: 'Important', estimatedWeeksToLearn: 10 }
+    ],
+    traits: [PersonalityTrait.Logical, PersonalityTrait.Theoretical, PersonalityTrait.Solo, PersonalityTrait.HandsOn],
+    courses: [
+      { title: 'Machine Learning A-Z™: AI, Python & R', provider: 'Udemy', link: 'https://www.udemy.com/course/machinelearning/', type: 'Certified' },
+      { title: 'Deep Learning Specialization', provider: 'DeepLearning.AI via Coursera', link: 'https://www.coursera.org/specializations/deep-learning', type: 'Certified' },
+      { title: 'AI for Everyone', provider: 'DeepLearning.AI', link: 'https://www.coursera.org/learn/ai-for-everyone', type: 'Free' }
+    ],
+    externalResources: [
+      { title: 'Artificial Intelligence - Wikipedia', description: 'Comprehensive foundational overview of AI history and concepts.', link: 'https://en.wikipedia.org/wiki/Artificial_intelligence' },
+      { title: 'ArXiv Satellite - ML Research', description: 'Stay updated with the latest peer-reviewed AI research papers.', link: 'https://arxiv.org/list/cs.LG/recent' },
+      { title: 'Towards Data Science', description: 'Expert articles on AI, ML, and Data Science implementation.', link: 'https://towardsdatascience.com/' }
     ]
   },
 
@@ -156,6 +65,17 @@ export const CAREER_PROFILES: CareerProfile[] = [
       { name: 'Advanced Excel & Macros', importance: 'Critical', estimatedWeeksToLearn: 6 },
       { name: 'Financial Modeling (DCF)', importance: 'Critical', estimatedWeeksToLearn: 8 },
       { name: 'Corporate Valuation', importance: 'Important', estimatedWeeksToLearn: 6 }
+    ],
+    traits: [PersonalityTrait.Logical, PersonalityTrait.RiskTaker, PersonalityTrait.Social, PersonalityTrait.Stable],
+    courses: [
+      { title: 'The Complete Investment Banking Course', provider: 'Udemy', link: 'https://www.udemy.com/course/investment-banking-course/', type: 'Certified' },
+      { title: 'FMVA® Certification', provider: 'Corporate Finance Institute (CFI)', link: 'https://corporatefinanceinstitute.com/', type: 'Certified' },
+      { title: 'Financial Markets', provider: 'Yale University via Coursera', link: 'https://www.coursera.org/learn/financial-markets-global', type: 'Free' }
+    ],
+    externalResources: [
+      { title: 'Investment Banking - Wikipedia', description: 'Deep dive into the structural and operational pillars of IB.', link: 'https://en.wikipedia.org/wiki/Investment_banking' },
+      { title: 'Investopedia', description: 'The ultimate encyclopedia for financial terms and concepts.', link: 'https://www.investopedia.com/' },
+      { title: 'Wall Street Prep', description: 'Real-world skill training for professional financial analysts.', link: 'https://www.wallstreetprep.com/' }
     ]
   },
 
@@ -182,6 +102,17 @@ export const CAREER_PROFILES: CareerProfile[] = [
       { name: 'Cognitive Behavioral Therapy', importance: 'Critical', estimatedWeeksToLearn: 24 },
       { name: 'Active Listening & Empathy', importance: 'Critical', estimatedWeeksToLearn: 12 },
       { name: 'Psychological Assessment', importance: 'Important', estimatedWeeksToLearn: 16 }
+    ],
+    traits: [PersonalityTrait.Empathetic, PersonalityTrait.Social, PersonalityTrait.Theoretical, PersonalityTrait.Stable],
+    courses: [
+      { title: 'Introduction to Psychology', provider: 'Udemy / Yale', link: 'https://www.udemy.com/course/introduction-to-psychology/', type: 'Free' },
+      { title: 'The Science of Well-Being', provider: 'Yale University', link: 'https://www.coursera.org/learn/the-science-of-well-being', type: 'Free' },
+      { title: 'Clinical Psychology Certification', provider: 'University of Queensland', link: 'https://www.edx.org/learn/clinical-psychology', type: 'Certified' }
+    ],
+    externalResources: [
+      { title: 'Clinical Psychology - Wikipedia', description: 'Scientific overview of clinical assessment and treatment methods.', link: 'https://en.wikipedia.org/wiki/Clinical_psychology' },
+      { title: 'Psychology Today', description: 'Insights into the human mind and latest psychological research.', link: 'https://www.psychologytoday.com/' },
+      { title: 'APA Learning Center', description: 'Professional development resources for psychologists.', link: 'https://www.apa.org/education-career' }
     ]
   },
 
@@ -208,6 +139,17 @@ export const CAREER_PROFILES: CareerProfile[] = [
       { name: 'Contract Drafting', importance: 'Critical', estimatedWeeksToLearn: 12 },
       { name: 'Legal Research & Analysis', importance: 'Critical', estimatedWeeksToLearn: 10 },
       { name: 'Negotiation Strategy', importance: 'Important', estimatedWeeksToLearn: 8 }
+    ],
+    traits: [PersonalityTrait.Logical, PersonalityTrait.Stable, PersonalityTrait.Social, PersonalityTrait.Theoretical],
+    courses: [
+      { title: 'Law for Entrepreneurs and Managers', provider: 'Udemy', link: 'https://www.udemy.com/course/law-for-entrepreneurs-and-managers/', type: 'Certified' },
+      { title: 'Introduction to Corporate Law', provider: 'UPenn via Coursera', link: 'https://www.coursera.org/learn/corporate-law', type: 'Certified' },
+      { title: 'English Common Law', provider: 'University of London', link: 'https://www.coursera.org/learn/commonlaw', type: 'Free' }
+    ],
+    externalResources: [
+      { title: 'Corporate Law - Wikipedia', description: 'Legal framework governing corporations and business entities.', link: 'https://en.wikipedia.org/wiki/Corporate_law' },
+      { title: 'Law.com Industry Insights', description: 'Analysis of global legal trends and firm news.', link: 'https://www.law.com/' },
+      { title: 'The Legal 500', description: 'Comprehensive guide to the world’s leading law firms.', link: 'https://www.legal500.com/' }
     ]
   },
 
@@ -234,6 +176,120 @@ export const CAREER_PROFILES: CareerProfile[] = [
       { name: 'Copywriting & Storytelling', importance: 'Critical', estimatedWeeksToLearn: 8 },
       { name: 'Consumer Behavioral Analysis', importance: 'Critical', estimatedWeeksToLearn: 6 },
       { name: 'Digital Analytics (Google/Meta)', importance: 'Important', estimatedWeeksToLearn: 6 }
+    ],
+    traits: [PersonalityTrait.Social, PersonalityTrait.RiskTaker, PersonalityTrait.HandsOn, PersonalityTrait.Logical],
+    courses: [
+      { title: 'Brand Strategy & Management', provider: 'Udemy', link: 'https://www.udemy.com/course/brand-management-branding-strategy/', type: 'Certified' },
+      { title: 'Brand Strategy Specialization', provider: 'Section School of Business', link: 'https://www.sectionschool.com/', type: 'Certified' },
+      { title: 'Digital Marketing Foundations', provider: 'Google Digital Garage', link: 'https://learndigital.withgoogle.com/digitalgarage', type: 'Free' }
+    ],
+    externalResources: [
+      { title: 'Brand Management - Wikipedia', description: 'The application of marketing techniques to a specific product or brand.', link: 'https://en.wikipedia.org/wiki/Brand_management' },
+      { title: 'Behance Branding Gallery', description: 'Visual inspiration from the world\'s top brand designers.', link: 'https://www.behance.net/galleries/branding' },
+      { title: 'AdAge Marketer’s Brief', description: 'The latest news and data on brand marketing strategy.', link: 'https://adage.com/' }
+    ]
+  }
+];
+
+/// --- THE ASSESSMENT ENGINE (Psychological & Habit-Based) ---
+export const QUESTIONS: Question[] = [
+  // --- BUCKET 1: NATURAL INSTINCTS ---
+  {
+    id: 'q1', text: 'You just downloaded a complex new app or strategy game. What is your first move?', type: QuestionType.Personality, weight: 2,
+    options: [
+      { label: 'Play the tutorial carefully to understand the mechanics and rules.', scores: { trait: { [PersonalityTrait.Theoretical]: 10, [PersonalityTrait.Logical]: 5 }, stream: { [CareerStream.Engineering]: 5 } } },
+      { label: 'Skip the tutorial immediately and figure it out by pushing buttons.', scores: { trait: { [PersonalityTrait.HandsOn]: 10, [PersonalityTrait.RiskTaker]: 5 }, archetype: { [Archetype.TheBuilder]: 10 } } },
+      { label: 'Jump straight into multiplayer to see what other people are doing.', scores: { trait: { [PersonalityTrait.Social]: 10 }, archetype: { [Archetype.TheLeader]: 5 }, stream: { [CareerStream.Business]: 5 } } },
+      { label: 'Go into the settings to customize my avatar, interface, and layout.', scores: { archetype: { [Archetype.TheCreator]: 10 }, stream: { [CareerStream.Creative]: 5 } } }
+    ]
+  },
+  {
+    id: 'q2', text: 'When you completely lose track of time (the "flow state"), what are you usually doing?', type: QuestionType.Direction, weight: 3,
+    options: [
+      { label: 'Fixing a bug, solving a puzzle, or figuring out how a system works.', scores: { stream: { [CareerStream.Engineering]: 10 }, branch: { [CareerBranch.Mech]: 5, [CareerBranch.CS]: 5 } } },
+      { label: 'Designing something visual, editing media, or writing a story.', scores: { stream: { [CareerStream.Creative]: 10 }, branch: { [CareerBranch.Design]: 10 } } },
+      { label: 'Researching a new topic, analyzing trends, or mapping out a strategy.', scores: { stream: { [CareerStream.Commerce]: 10, [CareerStream.Business]: 5 }, archetype: { [Archetype.TheAnalyst]: 10 } } },
+      { label: 'Having a deep conversation or helping someone work through a problem.', scores: { stream: { [CareerStream.Medical]: 10, [CareerStream.Humanities]: 5 }, archetype: { [Archetype.TheCaregiver]: 10 } } }
+    ]
+  },
+
+  // --- BUCKET 2: SOCIAL DYNAMICS ---
+  {
+    id: 'q3', text: 'Your team is falling way behind on a major project. How do you step up?', type: QuestionType.Personality, weight: 2,
+    options: [
+      { label: 'I completely restructure the timeline and assign clear tasks to everyone.', scores: { archetype: { [Archetype.TheLeader]: 10 }, trait: { [PersonalityTrait.Logical]: 5, [PersonalityTrait.Stable]: 5 } } },
+      { label: 'I isolate myself and speed-run the hardest technical parts alone.', scores: { stream: { [CareerStream.Engineering]: 5 }, trait: { [PersonalityTrait.Solo]: 10, [PersonalityTrait.HandsOn]: 10 } } },
+      { label: 'I brainstorm a creative shortcut or a better way to present what we have.', scores: { archetype: { [Archetype.TheCreator]: 10 }, stream: { [CareerStream.Creative]: 10 } } },
+      { label: 'I check in on my teammates to make sure no one is burning out or panicking.', scores: { archetype: { [Archetype.TheCaregiver]: 10 }, trait: { [PersonalityTrait.Empathetic]: 10 } } }
+    ]
+  },
+  {
+    id: 'q4', text: 'You need to convince a group to go with your idea. What is your strategy?', type: QuestionType.DeepDive, weight: 2,
+    options: [
+      { label: 'I bring data, facts, and a logical breakdown of why my idea is the smartest.', scores: { stream: { [CareerStream.Commerce]: 5, [CareerStream.Engineering]: 5 }, archetype: { [Archetype.TheAnalyst]: 10 } } },
+      { label: 'I read the room, find common ground, and make everyone feel heard.', scores: { stream: { [CareerStream.Humanities]: 10 }, trait: { [PersonalityTrait.Empathetic]: 10 } } },
+      { label: 'I pitch it with absolute confidence, energy, and a compelling vision.', scores: { stream: { [CareerStream.Business]: 10 }, branch: { [CareerBranch.Marketing]: 10 }, trait: { [PersonalityTrait.Social]: 10 } } },
+      { label: 'I just build a quick prototype or example to prove that it works.', scores: { trait: { [PersonalityTrait.HandsOn]: 10 }, archetype: { [Archetype.TheBuilder]: 10 } } }
+    ]
+  },
+
+  // --- BUCKET 3: PROBLEM SOLVING ---
+  {
+    id: 'q5', text: 'A sudden crisis hits: the internet drops 10 minutes before a massive deadline. What goes through your mind?', type: QuestionType.DeepDive, weight: 3,
+    options: [
+      { label: '"Let me check the router logs, restart the DNS, and diagnose the network error."', scores: { stream: { [CareerStream.Engineering]: 10 }, branch: { [CareerBranch.CS]: 10 }, trait: { [PersonalityTrait.Theoretical]: 5 } } },
+      { label: '"I will immediately grab my phone, turn on the hotspot, and reroute my connection."', scores: { trait: { [PersonalityTrait.HandsOn]: 10, [PersonalityTrait.RiskTaker]: 5 } } },
+      { label: '"I will draft a highly professional emergency email to send the second I get a signal."', scores: { stream: { [CareerStream.Business]: 5 }, branch: { [CareerBranch.Law]: 5 }, archetype: { [Archetype.TheLeader]: 5 } } },
+      { label: '"I will quickly call my teammates to coordinate a backup submission plan."', scores: { trait: { [PersonalityTrait.Social]: 10 }, archetype: { [Archetype.TheCaregiver]: 5 } } }
+    ]
+  },
+  {
+    id: 'q6', text: 'When you look at a massively successful tech startup, what fascinates you the most?', type: QuestionType.Direction, weight: 2,
+    options: [
+      { label: 'The complex underlying architecture and the engineering challenges they solved.', scores: { stream: { [CareerStream.Engineering]: 10 }, archetype: { [Archetype.TheBuilder]: 10 } } },
+      { label: 'Their revenue models, funding rounds, and global growth strategy.', scores: { stream: { [CareerStream.Commerce]: 10, [CareerStream.Business]: 10 }, branch: { [CareerBranch.Finance]: 10 } } },
+      { label: 'The beautiful UI, the brand identity, and how addictive the product feels.', scores: { stream: { [CareerStream.Creative]: 10 }, branch: { [CareerBranch.Design]: 10, [CareerBranch.Marketing]: 5 } } },
+      { label: 'How the founders manage a massive team and scale their company culture.', scores: { archetype: { [Archetype.TheLeader]: 10, [Archetype.TheAnalyst]: 5 } } }
+    ]
+  },
+
+  // --- BUCKET 4: LIFESTYLE & MOTIVATION ---
+  {
+    id: 'q7', text: 'If money was completely unlimited, what would your ideal Tuesday look like?', type: QuestionType.Personality, weight: 2,
+    options: [
+      { label: 'Deeply focused on mastering a complex new skill or personal project in a quiet room.', scores: { trait: { [PersonalityTrait.Solo]: 10, [PersonalityTrait.Stable]: 5 } } },
+      { label: 'Flying to a new city, chasing a high-stakes opportunity, and risking it all.', scores: { trait: { [PersonalityTrait.RiskTaker]: 10 }, archetype: { [Archetype.TheLeader]: 10 } } },
+      { label: 'Mentoring people, funding charities, and actively solving community problems.', scores: { archetype: { [Archetype.TheCaregiver]: 10 }, trait: { [PersonalityTrait.Empathetic]: 10 } } },
+      { label: 'Collaborating with brilliant artists or engineers to launch something game-changing.', scores: { archetype: { [Archetype.TheCreator]: 10 }, trait: { [PersonalityTrait.Social]: 10 } } }
+    ]
+  },
+  {
+    id: 'q8', text: 'How do you operate when given a project with strict, rigid guidelines?', type: QuestionType.Personality, weight: 2,
+    options: [
+      { label: 'I thrive. It gives me a clear, logical framework of exactly what needs to be done.', scores: { trait: { [PersonalityTrait.Stable]: 10, [PersonalityTrait.Logical]: 5 } } },
+      { label: 'I feel suffocated. I constantly want to bend the rules to make it more unique.', scores: { trait: { [PersonalityTrait.RiskTaker]: 10 }, archetype: { [Archetype.TheCreator]: 5 } } },
+      { label: 'I map out the rules, then find the most efficient loophole to do the work faster.', scores: { archetype: { [Archetype.TheAnalyst]: 10 }, trait: { [PersonalityTrait.Theoretical]: 5 } } },
+      { label: 'I usually ignore the guidelines if I think my way produces a better end result.', scores: { archetype: { [Archetype.TheLeader]: 5 }, trait: { [PersonalityTrait.HandsOn]: 5 } } }
+    ]
+  },
+
+  // --- BUCKET 5: THE ULTIMATE CHOICE ---
+  {
+    id: 'q9', text: 'Which of these sounds like the absolute worst nightmare job for you?', type: QuestionType.DeepDive, weight: 3,
+    options: [
+      { label: 'Doing the exact same repetitive data-entry task alone in a cubicle every day.', scores: { trait: { [PersonalityTrait.RiskTaker]: 10, [PersonalityTrait.Social]: 10 } } },
+      { label: 'Having to cold-call strangers and aggressively sell them products all day.', scores: { trait: { [PersonalityTrait.Solo]: 10, [PersonalityTrait.Empathetic]: 10 } } },
+      { label: 'Being a manager who has to fire people and deal with endless office politics.', scores: { trait: { [PersonalityTrait.Logical]: 10, [PersonalityTrait.Theoretical]: 10 } } },
+      { label: 'A job with zero creative freedom where you must follow instructions blindly.', scores: { archetype: { [Archetype.TheCreator]: 10 }, stream: { [CareerStream.Creative]: 5 } } }
+    ]
+  },
+  {
+    id: 'q10', text: 'Forget the job title for a second. What is the actual impact you want to leave behind?', type: QuestionType.Direction, weight: 3,
+    options: [
+      { label: '"I want to architect and build digital or physical systems that push humanity forward."', scores: { stream: { [CareerStream.Engineering]: 10 }, archetype: { [Archetype.TheBuilder]: 10 } } },
+      { label: '"I want to scale a massive business, generate wealth, and dominate a market."', scores: { stream: { [CareerStream.Business]: 10, [CareerStream.Commerce]: 10 }, trait: { [PersonalityTrait.RiskTaker]: 5 } } },
+      { label: '"I want to create designs, content, or media that inspire people and shift culture."', scores: { stream: { [CareerStream.Creative]: 10 }, archetype: { [Archetype.TheCreator]: 10 } } },
+      { label: '"I want to protect, heal, or educate people directly and improve their daily lives."', scores: { stream: { [CareerStream.Medical]: 10, [CareerStream.PublicService]: 10 }, archetype: { [Archetype.TheCaregiver]: 10 } } }
     ]
   }
 ];
